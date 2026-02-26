@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>STOCK MANAGER</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: "Pretendard Variable", Pretendard, sans-serif; overflow: hidden; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .spinner { border:2px solid rgba(0,0,0,0.1); border-left-color:#fff; border-radius:50%; width:14px; height:14px; animation:spin 1s linear infinite; display:inline-block; }
+        @keyframes spin { to{transform:rotate(360deg);} }
+    </style>
+</head>
+<body class="bg-gray-100 text-[#111] h-[100dvh] flex flex-col justify-center items-center">
+
+<!-- 로그인 -->
+<div id="login-screen" class="w-full max-w-sm px-6">
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-14 h-14 bg-gray-800 rounded-2xl mb-4">
+            <i data-lucide="package-check" class="w-7 h-7 text-white"></i>
+        </div>
+        <h1 class="text-xl font-bold">재고 관리</h1>
+        <p class="text-sm text-gray-500 mt-1">STOCK MANAGER</p>
+    </div>
+    <input type="password" id="staff-pw" placeholder="비밀번호 입력"
+        class="w-full border-2 border-gray-200 rounded-xl p-3.5 mb-3 text-center font-mono text-base focus:border-gray-800 outline-none transition-colors bg-white">
+    <button id="login-btn" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+        <i data-lucide="log-in" class="w-4 h-4"></i> 입장
+    </button>
+    <p id="login-error" class="hidden text-center text-xs text-red-500 mt-3">비밀번호가 올바르지 않습니다.</p>
+</div>
+
+<!-- 메인 -->
+<div id="main-screen" class="hidden w-full max-w-md h-full sm:h-auto sm:max-h-[95vh] flex flex-col sm:border sm:rounded-xl sm:shadow-xl bg-white overflow-hidden">
+    <div class="w-full h-full flex flex-col overflow-hidden">
+        <!-- 헤더 -->
+        <div class="px-4 py-3 flex items-center justify-between shrink-0 bg-gray-800 text-white">
+            <div>
+                <p class="font-bold text-base leading-none">STOCK MANAGER</p>
+                <p id="staff-subtitle" class="text-[10px] text-gray-400 mt-0.5">Loading...</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="conn-status" class="text-[10px] font-mono text-gray-400">연결 중...</span>
+                <button id="logout-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 전체 버튼 -->
+        <div class="px-4 py-2 bg-gray-50 border-b border-gray-100 flex gap-2 shrink-0">
+            <button id="all-in-btn"  class="flex-1 text-xs font-bold py-2 rounded-lg bg-green-100 text-green-800 border border-green-200 active:scale-95 transition-all">✓ 전체 재고 있음</button>
+            <button id="all-out-btn" class="flex-1 text-xs font-bold py-2 rounded-lg bg-red-100 text-red-700 border border-red-200 active:scale-95 transition-all">✗ 전체 품절 처리</button>
+        </div>
+        <div id="stock-list" class="flex-1 overflow-y-auto p-3 pb-4 scrollbar-hide space-y-3"></div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900/95 text-white px-5 py-3 rounded-full shadow-2xl z-50 text-sm flex items-center gap-2 whitespace-nowrap">
+    <div class="bg-green-500 rounded-full p-0.5"><i data-lucide="check" class="w-3 h-3 text-white"></i></div>
+    <span id="toast-msg"></span>
+</div>
+
+<script>
+firebase.initializeApp({
+    apiKey: "AIzaSyA-Ggw0br9mlCiXUmF8qgn72wegwq3yqoQ",
+    authDomain: "popup-stock-busan.firebaseapp.com",
+    projectId: "popup-stock-busan",
+    storageBucket: "popup-stock-busan.firebasestorage.app",
+    messagingSenderId: "499098237372",
+    appId: "1:499098237372:web:51a46cc75dea2d635693b9"
+});
+var auth = firebase.auth();
+var db   = firebase.firestore();
+var APP_ID = 'mmmm-popup-busan-v1';
+var STOCK_PATH    = 'artifacts/'+APP_ID+'/public/data/inventory/all_stock';
+var PRODUCTS_PATH = 'artifacts/'+APP_ID+'/public/data/config/products';
+var SETTINGS_PATH = 'artifacts/'+APP_ID+'/public/data/config/settings';
+
+var MMMM_OPTS = [{name:"먀미",en:"meowmi"},{name:"므모",en:"muhmo"},{name:"미므",en:"miimu"},{name:"뫄",en:"moi"},{name:"몌무",en:"meymu"}];
+var DEFAULT_PRODUCTS = [
+    {id:"g0",  name:"MMMM_베이비 코스튬 인형",       engName:"MMMM_BABY COSTUME PLUSH",        price:23000, category:"PLUSH",   image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/Plush_05.jpg?v=1770181303",         options:MMMM_OPTS},
+    {id:"g1",  name:"MMMM_베이비 댕글 모바일 참",     engName:"MMMM_BABY DGL MOBILE CHARM",     price:17000, category:"ACC",     image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/Mobile_Charm_02.jpg?v=1770181224",   options:MMMM_OPTS},
+    {id:"g2",  name:"MMMM_대형 모찌 얼굴 인형",       engName:"MMMM_FACE HUG PLUSH",            price:39000, category:"PLUSH",   image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/Cushion_01.jpg?v=1770180720",         options:MMMM_OPTS},
+    {id:"g3",  name:"MMMM_안아줘요 인형 크로스백",    engName:"MMMM_HUG ME PL CROSSBAG",        price:39000, category:"FASHION", image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/Crossbody-Bag_01_b21451ad-c952-489b-9564-feef049145d7.jpg?v=1770181008", options:MMMM_OPTS},
+    {id:"g4",  name:"MMMM_플러시 줄자 키링",          engName:"MMMM_PLUSH TAPELINE KEYRING",    price:16000, category:"ACC",     image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/Plush_Tape_Measure_01.jpg?v=1770181046", options:MMMM_OPTS},
+    {id:"g5",  name:"MMMM_얼굴 스트링 파우치",        engName:"MMMM_FACIAL STRING POUCH",       price:18000, category:"ACC",     image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/Drawstring-Pouch_01.jpg?v=1770180354",  options:MMMM_OPTS},
+    {id:"g6",  name:"MMMM_도킹형 보조배터리",         engName:"MMMM_DOCK AUXIL BATTERY",        price:29900, category:"TECH",    image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/01_68914793-d351-435d-adfe-2408f8fb8640.jpg?v=1770187778", options:MMMM_OPTS},
+    {id:"g7",  name:"MMMM_PVC 케이블 프로텍터",       engName:"MMMM_PVC CABLE PROTECTOR",       price:8900,  category:"TECH",    image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/01_9e2bfd6d-e906-4c59-82ac-ec188b6a554e.jpg?v=1770187844", options:MMMM_OPTS},
+    {id:"g8",  name:"MMMM_미니 모니터 피규어",        engName:"MMMM_MONITOR FIGURE",            price:10900, category:"TECH",    image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/01_e9442e8c-a0a2-4209-a996-28e892bc538e.jpg?v=1770187815", options:MMMM_OPTS},
+    {id:"g9",  name:"MMMM_포인트 레진 키캡",          engName:"MMMM_POINT RESIN KEYCAP",        price:28500, category:"TECH",    image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/01_586c9847-58a7-4ae9-a8d5-b089aabc90cc.jpg?v=1770178193", options:MMMM_OPTS},
+    {id:"g10", name:"MMMM_양말",                      engName:"MMMM_SOCKS",                     price:8000,  category:"FASHION", image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/01_9173e949-c758-4ea3-8d9d-cb4062145d84.jpg?v=1770179924", options:MMMM_OPTS},
+    {id:"g11", name:"MMMM_랜덤 플러시 뱃지(10types)", engName:"MMMM_RANDOM PLUSH BADGE(10TY)", price:12000, category:"ACC",     image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/Plush-Badge_01.jpg?v=1770181176",      options:[{name:"단품",en:""}]},
+    {id:"g12", name:"MMMM_PVC 투명 백참 파우치",      engName:"MMMM_PVC CLEAR BAGCHARM POUCH", price:18000, category:"ACC",     image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/Clear-Pouch_01.jpg?v=1770179727",      options:[{name:"단품",en:""}]},
+    {id:"g13", name:"MMMM_턴어라운드 머그",            engName:"MMMM_TURNAROUND MUG",            price:18000, category:"LIVING",  image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/Mug_01.jpg?v=1770178433",             options:[{name:"단품",en:""}]},
+    {id:"g14", name:"MMMM_레이어드 아크릴 마그넷",    engName:"MMMM_LAYERED ACR MAGNET",        price:8000,  category:"LIVING",  image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/01_6296e3a7-bc3d-4ff2-9afd-ff26698c7cf2.jpg?v=1770179130", options:MMMM_OPTS},
+    {id:"g15", name:"MMMM_응원봉 메탈참 스트랩",      engName:"MMMM_METAL CHARM STRAP",         price:16000, category:"ACC",     image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/01_0858f66b-aed6-462c-a268-fce58fa05d70.jpg?v=1770178517", options:MMMM_OPTS},
+    {id:"g16", name:"MMMM_후드 집업",                 engName:"MMMM_HOODIE ZIPUP",              price:75000, category:"FASHION", image:"https://cdn.shopify.com/s/files/1/0513/1599/8919/files/01_8883ed28-f008-4245-bd8b-b3b47e8cd449.jpg?v=1770178397", options:[{name:"FREE",en:""}]}
+];
+var DEFAULT_SETTINGS = { location:"신세계 센텀시티 부산", adminPassword:"0715" };
+
+var products = [];
+var settings = Object.assign({}, DEFAULT_SETTINGS);
+var loggedIn = false;
+var unsub = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    lucide.createIcons();
+    auth.signInAnonymously().then(function() {
+        return db.doc(SETTINGS_PATH).get();
+    }).then(function(snap) {
+        if (snap.exists) settings = Object.assign({}, DEFAULT_SETTINGS, snap.data());
+    }).catch(console.error);
+
+    document.getElementById('staff-pw').addEventListener('keypress', function(e){ if(e.key==='Enter') doLogin(); });
+    document.getElementById('login-btn').addEventListener('click', doLogin);
+    document.getElementById('logout-btn').addEventListener('click', doLogout);
+    document.getElementById('all-in-btn').addEventListener('click',  function(){ setAll('IN_STOCK'); });
+    document.getElementById('all-out-btn').addEventListener('click', function(){ setAll('SOLD_OUT'); });
+});
+
+function doLogin() {
+    var pw = document.getElementById('staff-pw').value;
+    if (pw !== (settings.adminPassword || DEFAULT_SETTINGS.adminPassword)) {
+        document.getElementById('login-error').classList.remove('hidden');
+        document.getElementById('staff-pw').value = '';
+        return;
+    }
+    document.getElementById('login-error').classList.add('hidden');
+    loggedIn = true;
+    loadAndListen();
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-screen').classList.remove('hidden');
+    lucide.createIcons();
+}
+
+function doLogout() {
+    loggedIn = false;
+    if (unsub) { unsub(); unsub = null; }
+    document.getElementById('main-screen').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('staff-pw').value = '';
+}
+
+function loadAndListen() {
+    db.doc(PRODUCTS_PATH).get().then(function(snap) {
+        var raw = (snap.exists && snap.data().list && snap.data().list.length) ? snap.data().list : DEFAULT_PRODUCTS;
+        products = raw.map(function(p) {
+            return Object.assign({}, p, {
+                variants: p.options.map(function(o,i){
+                    return {id:p.id+'_'+i, name:typeof o==='object'?o.name:o, en:typeof o==='object'?(o.en||''):'', status:'IN_STOCK'};
+                })
+            });
+        });
+        document.getElementById('staff-subtitle').innerText = settings.location || '';
+    }).catch(function() {
+        products = DEFAULT_PRODUCTS.map(function(p){ return Object.assign({},p,{variants:p.options.map(function(o,i){return {id:p.id+'_'+i,name:o.name||o,en:o.en||'',status:'IN_STOCK'};})}); });
+        document.getElementById('staff-subtitle').innerText = DEFAULT_SETTINGS.location;
+    }).then(function() {
+        if (unsub) unsub();
+        unsub = db.doc(STOCK_PATH).onSnapshot(function(snap) {
+            if (snap.exists) {
+                var d = snap.data();
+                products.forEach(function(g){ g.variants.forEach(function(v){ if(d[v.id]) v.status=d[v.id]; }); });
+            }
+            renderStock();
+            document.getElementById('conn-status').innerText = '● 실시간 연결';
+            document.getElementById('conn-status').className = 'text-[10px] font-mono text-green-400';
+        }, function() {
+            document.getElementById('conn-status').innerText = '● 연결 오류';
+            document.getElementById('conn-status').className = 'text-[10px] font-mono text-red-400';
+        });
+    });
+}
+
+function renderStock() {
+    document.getElementById('stock-list').innerHTML = products.map(function(g) {
+        var soldCount = g.variants.filter(function(v){return v.status==='SOLD_OUT';}).length;
+        var allOut = soldCount === g.variants.length;
+        var btns = g.variants.map(function(v) {
+            var out = v.status==='SOLD_OUT';
+            return '<button class="flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all active:scale-95 select-none relative ' +
+                (out?'bg-red-50 border-red-200 text-red-400':'bg-green-50 border-green-400 text-green-800') +
+                '" data-vid="'+v.id+'" data-next="'+(out?'IN_STOCK':'SOLD_OUT')+'">' +
+                '<span class="text-xs font-bold">'+v.name+'</span>' +
+                (v.en?'<span class="text-[9px] font-normal opacity-60 uppercase">'+v.en+'</span>':'') +
+                '<span class="text-[10px] font-mono mt-0.5">'+(out?'품절':'판매중')+'</span>' +
+                (!out?'<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>':'') +
+            '</button>';
+        }).join('');
+        return '<div class="bg-white border '+(allOut?'border-red-200 bg-red-50/30':'border-gray-200')+' rounded-xl p-3">' +
+            '<div class="flex items-center gap-3 mb-3 pb-2 border-b border-gray-100">' +
+                '<img src="'+g.image+'" class="w-10 h-10 rounded-lg bg-gray-100 object-cover border border-gray-200 '+(allOut?'grayscale opacity-60':'')+'">' +
+                '<div class="flex-1 min-w-0">' +
+                    '<p class="text-xs font-bold text-gray-900 truncate">'+g.name+'</p>' +
+                    '<p class="text-[10px] '+(soldCount>0?'text-red-500 font-bold':'text-gray-400')+'">'+soldCount+'/'+g.variants.length+' 품절</p>' +
+                '</div>' +
+                (allOut?'<span class="shrink-0 text-[10px] font-black text-red-600 bg-red-100 border border-red-200 px-2 py-1 rounded-full">ALL SOLD OUT</span>':'') +
+            '</div>' +
+            '<div class="grid grid-cols-3 gap-2">'+btns+'</div>' +
+        '</div>';
+    }).join('');
+
+    document.getElementById('stock-list').onclick = function(e) {
+        var btn = e.target.closest('[data-vid]');
+        if (!btn) return;
+        toggle(btn.dataset.vid, btn.dataset.next);
+    };
+    lucide.createIcons();
+}
+
+function toggle(id, next) {
+    products.forEach(function(g){ var v=g.variants.find(function(v){return v.id===id;}); if(v) v.status=next; });
+    renderStock();
+    showToast(next==='SOLD_OUT'?'품절 처리':'재고 있음으로 변경');
+    db.doc(STOCK_PATH).set({[id]:next},{merge:true}).catch(function(e){alert('저장 실패: '+e.message);});
+}
+
+function setAll(status) {
+    if (!confirm((status==='SOLD_OUT'?'전체 품절':'전체 재고 있음')+'으로 변경할까요?')) return;
+    var batch = {};
+    products.forEach(function(g){ g.variants.forEach(function(v){ v.status=status; batch[v.id]=status; }); });
+    renderStock();
+    showToast(status==='SOLD_OUT'?'전체 품절 처리':'전체 재고 있음으로 변경');
+    db.doc(STOCK_PATH).set(batch).catch(function(e){alert('저장 실패: '+e.message);});
+}
+
+function showToast(msg) {
+    var el = document.getElementById('toast');
+    document.getElementById('toast-msg').innerText = msg;
+    el.classList.remove('hidden');
+    setTimeout(function(){ el.classList.add('hidden'); }, 1800);
+}
+</script>
+</body>
+</html>
