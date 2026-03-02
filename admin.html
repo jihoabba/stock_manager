@@ -7,9 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- SheetJS for Excel Upload/Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         * { box-sizing: border-box; }
         body { font-family: "Pretendard Variable", Pretendard, sans-serif; background: #f3f4f6; height: 100vh; overflow: hidden; }
@@ -39,7 +43,7 @@
         .chip-x { color:#9ca3af; cursor:pointer; font-size:13px; line-height:1; }
         .chip-x:hover { color:#ef4444; }
         .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); backdrop-filter:blur(4px); z-index:50; display:flex; align-items:center; justify-content:center; padding:24px; }
-        .modal { background:#fff; border-radius:14px; width:100%; max-width:500px; max-height:88vh; overflow-y:auto; box-shadow:0 24px 80px rgba(0,0,0,0.22); }
+        .modal { background:#fff; border-radius:14px; width:100%; max-width:600px; max-height:88vh; overflow-y:auto; box-shadow:0 24px 80px rgba(0,0,0,0.22); }
         .spin { border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; width:14px; height:14px; animation:rot 0.8s linear infinite; display:inline-block; }
         @keyframes rot { to{transform:rotate(360deg);} }
         .login-wrap { height:100vh; display:flex; align-items:center; justify-content:center; }
@@ -119,9 +123,20 @@
                         <h2 class="text-base font-bold text-gray-900">상품 관리</h2>
                         <p class="text-xs text-gray-400 mt-0.5" id="product-count">로딩 중...</p>
                     </div>
-                    <button id="add-product-btn" class="btn btn-dark px-3 py-2 text-xs">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> 상품 추가
-                    </button>
+                    <div class="flex gap-2">
+                        <!-- 엑셀 업로드 관련 버튼 -->
+                        <button id="dl-template-btn" class="btn btn-gray px-3 py-2 text-xs">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> 양식 다운로드
+                        </button>
+                        <button id="upload-excel-btn" class="btn btn-gray px-3 py-2 text-xs">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> 엑셀 업로드
+                        </button>
+                        <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" class="hidden">
+                        
+                        <button id="add-product-btn" class="btn btn-dark px-3 py-2 text-xs">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> 상품 추가
+                        </button>
+                    </div>
                 </div>
                 <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-4 flex items-center gap-2">
                     <i data-lucide="info" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i>
@@ -168,11 +183,12 @@
             <div class="bg-white border-b border-gray-200 px-4 py-3 shrink-0">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-gray-900">POP-UP LIVE STOCK</span>
-                    <span class="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">미리보기</span>
+                    <span class="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">고객용 미리보기</span>
                 </div>
                 <p id="preview-subtitle" class="text-[10px] text-gray-500 mt-0.5"></p>
             </div>
-            <div class="bg-gray-600 text-white px-3 py-1.5 text-[10px] font-bold flex items-center gap-2 shrink-0 overflow-hidden whitespace-nowrap">
+            <!-- 포인트 컬러 배너 (JS에서 렌더링 시 변경됨) -->
+            <div id="preview-banner" class="bg-gray-600 text-white px-3 py-1.5 text-[10px] font-bold flex items-center gap-2 shrink-0 overflow-hidden whitespace-nowrap">
                 <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0"></span>
                 <div class="animate-marquee">실시간 재고 현황 · 붉은색 표시는 품절 · 현장 상황에 따라 차이가 있을 수 있습니다.</div>
             </div>
@@ -206,26 +222,33 @@
                 </div>
             </div>
             <div><label class="lbl">이미지 URL (Shopify CDN)</label><input type="url" id="pm-image" class="inp" placeholder="https://cdn.shopify.com/..."></div>
-            <div>
-                <label class="lbl">옵션 목록</label>
-                <div id="option-tags" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 border border-dashed border-gray-200 rounded-lg mb-2 bg-gray-50">
+            
+            <div class="border-t border-gray-100 pt-3 mt-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <label class="lbl mb-0">옵션 목록</label>
+                    <span class="text-[9px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">※ 고객/직원용을 다르게 노출 가능합니다</span>
+                </div>
+                
+                <div id="option-tags" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 border border-dashed border-gray-200 rounded-lg mb-3 bg-gray-50">
                     <span class="text-xs text-gray-400 self-center">옵션을 추가하세요</span>
                 </div>
+                
                 <div class="flex gap-2 mb-2">
-                    <input type="text" id="opt-name" class="inp" placeholder="옵션명 (예: 먀미)">
-                    <input type="text" id="opt-en"   class="inp" placeholder="영문명 (선택)">
+                    <div class="flex-1"><input type="text" id="opt-name" class="inp" placeholder="옵션명 (고객노출용)"></div>
+                    <div class="flex-1"><input type="text" id="opt-staff" class="inp" placeholder="직원용 메모 (선택)"></div>
+                    <div class="flex-1"><input type="text" id="opt-en"   class="inp" placeholder="영문명 (선택)"></div>
                     <button id="add-option-btn" class="btn btn-dark px-4 shrink-0">추가</button>
                 </div>
-                <div class="flex flex-wrap gap-1.5" id="preset-btns">
+                
+                <div class="flex flex-wrap gap-1.5 mt-3" id="preset-btns">
                     <button data-preset="mmmm"   class="text-[11px] bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg px-2.5 py-1 font-semibold">MMMM 5종</button>
                     <button data-preset="single" class="text-[11px] bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg px-2.5 py-1 font-semibold">단품</button>
                     <button data-preset="free"   class="text-[11px] bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg px-2.5 py-1 font-semibold">FREE</button>
                     <button data-preset="size"   class="text-[11px] bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg px-2.5 py-1 font-semibold">사이즈 S-XL</button>
-                    <button data-preset="dreami" class="text-[11px] bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg px-2.5 py-1 font-semibold">드리미즈 7종</button>
                 </div>
             </div>
         </div>
-        <div class="flex gap-3 mt-5">
+        <div class="flex gap-3 mt-6">
             <button id="modal-cancel-btn" class="btn btn-gray flex-1 py-2.5">취소</button>
             <button id="modal-save-btn"   class="btn btn-dark flex-1 py-2.5">저장</button>
         </div>
@@ -258,7 +281,8 @@ var BRANCHES = {
         defaultLocation: '케이팝스퀘어 홍대 (K-POP SQUARE HONGDAE)',
         defaultUrl: 'https://linefriendssquare.com',
         badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-        dotClass:   'bg-blue-500'
+        dotClass:   'bg-blue-500',
+        bannerClass: 'bg-blue-600'
     },
     busan: {
         appId: 'mmmm-popup-busan',
@@ -266,16 +290,23 @@ var BRANCHES = {
         defaultLocation: '신세계 센텀시티 부산 (Shinsegae Centum City Busan)',
         defaultUrl: 'https://linefriendssquare.com',
         badgeClass: 'bg-orange-50 text-orange-700 border-orange-200',
-        dotClass:   'bg-orange-500'
+        dotClass:   'bg-orange-500',
+        bannerClass: 'bg-orange-500'
     }
 };
 
+// [수정] Preset 데이터에 staffName 추가
 var PRESETS = {
-    mmmm:   [{name:"먀미",en:"meowmi"},{name:"므모",en:"muhmo"},{name:"미므",en:"miimu"},{name:"뫄",en:"moi"},{name:"몌무",en:"meymu"}],
-    single: [{name:"단품",en:""}],
-    free:   [{name:"FREE",en:""}],
-    size:   [{name:"S",en:""},{name:"M",en:""},{name:"L",en:""},{name:"XL",en:""}],
-    dreami: [{name:"eong",en:""},{name:"jjun",en:""},{name:"jjed",en:""},{name:"jjopoo",en:""},{name:"kkuping",en:""},{name:"lemyo",en:""},{name:"bamjji",en:""}]
+    mmmm:   [
+        {name:"먀미", staffName:"먀미(검정 귀)", en:"meowmi"},
+        {name:"므모", staffName:"므모(회색 귀)", en:"muhmo"},
+        {name:"미므", staffName:"미므(분홍 귀)", en:"miimu"},
+        {name:"뫄", staffName:"뫄(노란 귀)", en:"moi"},
+        {name:"몌무", staffName:"몌무(파란 귀)", en:"meymu"}
+    ],
+    single: [{name:"단품", staffName:"", en:""}],
+    free:   [{name:"FREE", staffName:"", en:""}],
+    size:   [{name:"S", staffName:"", en:""},{name:"M", staffName:"", en:""},{name:"L", staffName:"", en:""},{name:"XL", staffName:"", en:""}]
 };
 
 // ── 상태 ──────────────────────────────────────────
@@ -321,6 +352,11 @@ function bindEvents() {
     $id('tab-btn-products').addEventListener('click', function(){ switchTab('products'); });
     $id('tab-btn-settings').addEventListener('click',  function(){ switchTab('settings'); });
 
+    // 엑셀 기능 바인딩
+    $id('dl-template-btn').addEventListener('click', downloadTemplate);
+    $id('upload-excel-btn').addEventListener('click', function(){ $id('excel-upload').click(); });
+    $id('excel-upload').addEventListener('change', handleExcelUpload);
+
     $id('add-product-btn').addEventListener('click', openAdd);
     $id('save-products-btn').addEventListener('click', saveProducts);
     $id('save-settings-btn').addEventListener('click', saveSettings);
@@ -332,6 +368,7 @@ function bindEvents() {
 
     $id('add-option-btn').addEventListener('click', addOption);
     $id('opt-name').addEventListener('keypress', function(e){ if(e.key==='Enter'){e.preventDefault();addOption();} });
+    $id('opt-staff').addEventListener('keypress', function(e){ if(e.key==='Enter'){e.preventDefault();addOption();} });
     $id('opt-en').addEventListener('keypress',   function(e){ if(e.key==='Enter'){e.preventDefault();addOption();} });
     $id('pm-image').addEventListener('input', function(e){ setImgPreview(e.target.value); });
 
@@ -381,12 +418,15 @@ function switchBranch(branch) {
     $id('branch-hongdae').className = 'branch-tab ' + (branch==='hongdae'?'on':'off');
     $id('branch-busan').className   = 'branch-tab ' + (branch==='busan'?'on':'off');
 
-    // 배지
+    // 배지 및 미리보기 배너 컬러 변경
     var b = BRANCHES[branch];
     var badge = $id('branch-badge');
     badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-4 border ' + b.badgeClass;
     badge.querySelector('span:first-child').className = 'w-1.5 h-1.5 rounded-full ' + b.dotClass;
     $id('branch-badge-text').innerText = b.name + ' 편집 중';
+    
+    var banner = $id('preview-banner');
+    banner.className = 'text-white px-3 py-1.5 text-[10px] font-bold flex items-center gap-2 shrink-0 overflow-hidden whitespace-nowrap ' + b.bannerClass;
 
     if(stockUnsub){stockUnsub();stockUnsub=null;}
     previewStock = {};
@@ -407,7 +447,8 @@ function loadBranch() {
         var raw = (results[1].exists && results[1].data().list && results[1].data().list.length) ? results[1].data().list : [];
         editingProducts = raw.map(function(p){
             return Object.assign({},p,{options:p.options.map(function(o){
-                return typeof o==='object'?{name:o.name||'',en:o.en||''}:{name:o,en:''};
+                // [수정] staffName 연동 보강
+                return typeof o==='object'?{name:o.name||'',en:o.en||'',staffName:o.staffName||o.name||''}:{name:o,en:'',staffName:o};
             })});
         });
 
@@ -434,6 +475,72 @@ function switchTab(tab) {
     $id('tab-settings').classList.toggle('hidden', tab!=='settings');
     $id('tab-btn-products').classList.toggle('on', tab==='products');
     $id('tab-btn-settings').classList.toggle('on', tab==='settings');
+}
+
+// ── 엑셀 업로드 & 다운로드 ─────────────────────────
+function downloadTemplate() {
+    var ws_data = [
+        ["카테고리", "상품명", "영문상품명", "가격", "이미지URL", "고객용옵션(콤마구분)", "직원용옵션(콤마구분)", "영문옵션(콤마구분)"],
+        ["PLUSH", "MMMM_BABY 인형", "MMMM_BABY PLUSH", 23000, "https://cdn.shopify.com/s/files/...", "먀미,므모,미므,뫄,몌무", "먀미(검정 귀),므모(회색 귀),미므(분홍 귀),뫄(노란 귀),몌무(파란 귀)", "meowmi,muhmo,miimu,moi,meymu"],
+        ["ACC", "MMMM_턴어라운드 머그", "MMMM_TURNAROUND MUG", 18000, "", "단품", "단품", "single"]
+    ];
+    var ws = XLSX.utils.aoa_to_sheet(ws_data);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "상품목록");
+    XLSX.writeFile(wb, "popup_products_template.xlsx");
+}
+
+function handleExcelUpload(e) {
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+        var data = new Uint8Array(evt.target.result);
+        var workbook = XLSX.read(data, {type: 'array'});
+        var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        var rows = XLSX.utils.sheet_to_json(firstSheet, {defval:""});
+
+        var newProducts = [];
+        rows.forEach(function(row, idx) {
+            var name = (row['상품명']||'').toString().trim();
+            if(!name) return; // 상품명이 없으면 패스
+            
+            var optNames = (row['고객용옵션(콤마구분)']||'단품').toString().split(',').map(function(s){return s.trim();});
+            var optStaffs = (row['직원용옵션(콤마구분)']||'').toString().split(',').map(function(s){return s.trim();});
+            var optEns = (row['영문옵션(콤마구분)']||'').toString().split(',').map(function(s){return s.trim();});
+
+            var options = optNames.map(function(opt, i) {
+                return {
+                    name: opt,
+                    staffName: optStaffs[i] || opt, // 직원용 옵션이 비어있으면 고객용 복사
+                    en: optEns[i] || ''
+                };
+            });
+
+            newProducts.push({
+                id: 'g' + Date.now() + '_' + idx,
+                name: name,
+                engName: (row['영문상품명']||'').toString().trim(),
+                price: parseInt(row['가격'])||0,
+                category: (row['카테고리']||'ETC').toString().trim().toUpperCase(),
+                image: (row['이미지URL']||'').toString().trim(),
+                options: options
+            });
+        });
+
+        if(newProducts.length > 0) {
+            if(confirm("총 " + newProducts.length + "개의 상품을 불러왔습니다.\n기존 목록을 모두 덮어씌우시겠습니까?")) {
+                editingProducts = newProducts;
+                renderProductList();
+                renderPreview();
+                showToast("엑셀 업로드 성공 (저장 버튼을 눌러야 최종 반영됩니다)");
+            }
+        } else {
+            alert("불러올 상품 데이터가 없습니다. 양식을 확인해주세요.");
+        }
+        $id('excel-upload').value = ''; // 초기화
+    };
+    reader.readAsArrayBuffer(file);
 }
 
 // ── 상품 리스트 ───────────────────────────────────
@@ -477,11 +584,12 @@ function renderProductList() {
     };
 }
 
-// ── 미리보기 ──────────────────────────────────────
+// ── 미리보기 (고객 화면 기준) ─────────────────────
 function renderPreview() {
     $id('preview-list').innerHTML = editingProducts.map(function(p){
         var variants = p.options.map(function(o,i){
             var vid=p.id+'_'+i, out=(previewStock[vid]==='SOLD_OUT');
+            // 미리보기는 고객용 화면이므로 name 노출
             return {name:o.name,en:o.en||'',out:out};
         });
         var allOut = variants.every(function(v){return v.out;});
@@ -583,16 +691,29 @@ function deleteProduct(idx) {
 
 // ── Options ───────────────────────────────────────
 function addOption() {
-    var name=$id('opt-name').value.trim(), en=$id('opt-en').value.trim();
+    var name=$id('opt-name').value.trim();
+    var staffName=$id('opt-staff').value.trim();
+    var en=$id('opt-en').value.trim();
     if(!name){$id('opt-name').focus();return;}
-    if(!modalOpts.find(function(o){return o.name===name;})) { modalOpts.push({name:name,en:en}); renderOptionTags(); }
-    $id('opt-name').value=''; $id('opt-en').value=''; $id('opt-name').focus();
+    
+    if(!modalOpts.find(function(o){return o.name===name;})) { 
+        modalOpts.push({name:name, staffName: staffName||name, en:en}); 
+        renderOptionTags(); 
+    }
+    $id('opt-name').value=''; $id('opt-staff').value=''; $id('opt-en').value=''; $id('opt-name').focus();
 }
+
 function renderOptionTags() {
     if(!modalOpts.length){ $id('option-tags').innerHTML='<span class="text-xs text-gray-400 self-center">옵션을 추가하세요</span>'; return; }
     $id('option-tags').innerHTML = modalOpts.map(function(o,i){
-        return '<span class="chip">'+esc(o.name)+(o.en?'<span class="text-gray-400 font-normal text-[10px]"> '+esc(o.en)+'</span>':'')+
-            '<span class="chip-x" data-rmopt="'+i+'">✕</span></span>';
+        // 칩 안에 고객용(직원용) 영문명 표시
+        var disp = esc(o.name);
+        if (o.staffName && o.staffName !== o.name) {
+            disp += ' <span class="text-gray-400 font-normal">(' + esc(o.staffName) + ')</span>';
+        }
+        if (o.en) disp += '<span class="text-gray-400 font-normal text-[10px] ml-1">' + esc(o.en) + '</span>';
+        
+        return '<span class="chip">'+disp+'<span class="chip-x ml-1" data-rmopt="'+i+'">✕</span></span>';
     }).join('');
 }
 
