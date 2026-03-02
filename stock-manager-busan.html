@@ -21,15 +21,17 @@
 <!-- 로그인 -->
 <div id="login-screen" class="w-full max-w-sm px-6">
     <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 bg-gray-800 rounded-2xl mb-4">
+        <!-- [포인트 컬러] 부산점 오렌지 -->
+        <div class="inline-flex items-center justify-center w-14 h-14 bg-orange-500 rounded-2xl mb-4 shadow-lg">
             <i data-lucide="package-check" class="w-7 h-7 text-white"></i>
         </div>
         <h1 class="text-xl font-bold">재고 관리</h1>
         <p class="text-sm text-gray-500 mt-1">신세계 센텀시티 부산</p>
     </div>
+    <!-- [포인트 컬러] 부산점 오렌지 -->
     <input type="password" id="staff-pw" placeholder="비밀번호 입력"
-        class="w-full border-2 border-gray-200 rounded-xl p-3.5 mb-3 text-center font-mono text-base focus:border-gray-800 outline-none transition-colors bg-white">
-    <button id="login-btn" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+        class="w-full border-2 border-gray-200 rounded-xl p-3.5 mb-3 text-center font-mono text-base focus:border-orange-500 outline-none transition-colors bg-white">
+    <button id="login-btn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
         <i data-lucide="log-in" class="w-4 h-4"></i> 입장
     </button>
     <p id="login-error" class="hidden text-center text-xs text-red-500 mt-3">비밀번호가 올바르지 않습니다.</p>
@@ -38,14 +40,15 @@
 <!-- 메인 -->
 <div id="main-screen" class="hidden w-full max-w-md h-full sm:h-auto sm:max-h-[95vh] flex flex-col sm:border sm:rounded-xl sm:shadow-xl bg-white overflow-hidden">
     <div class="w-full h-full flex flex-col overflow-hidden">
-        <div class="px-4 py-3 flex items-center justify-between shrink-0 bg-gray-800 text-white">
+        <!-- [포인트 컬러] 부산점 오렌지 -->
+        <div class="px-4 py-3 flex items-center justify-between shrink-0 bg-orange-600 text-white">
             <div>
                 <p class="font-bold text-base leading-none">STOCK MANAGER</p>
-                <p id="staff-subtitle" class="text-[10px] text-gray-400 mt-0.5">신세계 센텀시티 부산</p>
+                <p id="staff-subtitle" class="text-[10px] text-orange-100 mt-0.5">신세계 센텀시티 부산</p>
             </div>
             <div class="flex items-center gap-3">
-                <span id="conn-status" class="text-[10px] font-mono text-gray-400">연결 중...</span>
-                <button id="logout-btn" class="text-gray-400 hover:text-white transition-colors">
+                <span id="conn-status" class="text-[10px] font-mono text-orange-200">연결 중...</span>
+                <button id="logout-btn" class="text-orange-200 hover:text-white transition-colors">
                     <i data-lucide="log-out" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -125,7 +128,8 @@ function loadAndListen() {
         products = raw.map(function(p) {
             return Object.assign({}, p, {
                 variants: p.options.map(function(o,i){
-                    return {id:p.id+'_'+i, name:typeof o==='object'?o.name:o, en:typeof o==='object'?(o.en||''):'', status:'IN_STOCK'};
+                    // [직원용 옵션명 분리 적용] staffName 우선 표기
+                    return {id:p.id+'_'+i, name:typeof o==='object'?(o.staffName||o.name):o, en:typeof o==='object'?(o.en||''):'', status:'IN_STOCK'};
                 })
             });
         });
@@ -139,10 +143,10 @@ function loadAndListen() {
             }
             renderStock();
             document.getElementById('conn-status').innerText = '● 실시간 연결';
-            document.getElementById('conn-status').className = 'text-[10px] font-mono text-green-400';
+            document.getElementById('conn-status').className = 'text-[10px] font-mono text-green-300';
         }, function() {
             document.getElementById('conn-status').innerText = '● 연결 오류';
-            document.getElementById('conn-status').className = 'text-[10px] font-mono text-red-400';
+            document.getElementById('conn-status').className = 'text-[10px] font-mono text-red-200';
         });
     });
 }
@@ -156,18 +160,18 @@ function renderStock() {
             return '<button class="flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all active:scale-95 select-none relative ' +
                 (out?'bg-red-50 border-red-200 text-red-400':'bg-green-50 border-green-400 text-green-800') +
                 '" data-vid="'+v.id+'" data-next="'+(out?'IN_STOCK':'SOLD_OUT')+'">' +
-                '<span class="text-xs font-bold">'+v.name+'</span>' +
-                (v.en?'<span class="text-[9px] font-normal opacity-60 uppercase">'+v.en+'</span>':'') +
-                '<span class="text-[10px] font-mono mt-0.5">'+(out?'품절':'판매중')+'</span>' +
+                '<span class="text-[11px] leading-tight font-bold">'+v.name+'</span>' +
+                (v.en?'<span class="text-[9px] font-normal opacity-60 uppercase mt-0.5">'+v.en+'</span>':'') +
+                '<span class="text-[10px] font-mono mt-1 '+(out?'text-red-500':'text-green-600 opacity-80')+'">'+(out?'품절됨':'판매중')+'</span>' +
                 (!out?'<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>':'') +
             '</button>';
         }).join('');
-        return '<div class="bg-white border '+(allOut?'border-red-200 bg-red-50/30':'border-gray-200')+' rounded-xl p-3">' +
+        return '<div class="bg-white border '+(allOut?'border-red-200 bg-red-50/30':'border-gray-200')+' rounded-xl p-3 shadow-sm">' +
             '<div class="flex items-center gap-3 mb-3 pb-2 border-b border-gray-100">' +
-                '<img src="'+g.image+'" class="w-10 h-10 rounded-lg bg-gray-100 object-cover border border-gray-200 '+(allOut?'grayscale opacity-60':'')+'">' +
+                '<img src="'+(g.image||'')+'" class="w-10 h-10 rounded-lg bg-gray-100 object-cover border border-gray-200 '+(allOut?'grayscale opacity-60':'')+'">' +
                 '<div class="flex-1 min-w-0">' +
                     '<p class="text-xs font-bold text-gray-900 truncate">'+g.name+'</p>' +
-                    '<p class="text-[10px] '+(soldCount>0?'text-red-500 font-bold':'text-gray-400')+'">'+soldCount+'/'+g.variants.length+' 품절</p>' +
+                    '<p class="text-[10px] '+(soldCount>0?'text-red-500 font-bold':'text-gray-400')+'">'+soldCount+'/'+g.variants.length+' 옵션 품절</p>' +
                 '</div>' +
                 (allOut?'<span class="shrink-0 text-[10px] font-black text-red-600 bg-red-100 border border-red-200 px-2 py-1 rounded-full">ALL SOLD OUT</span>':'') +
             '</div>' +
