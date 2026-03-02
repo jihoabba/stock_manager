@@ -3,13 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>POP-UP LIVE STOCK</title>
+    <title>POP-UP LIVE STOCK - 부산</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1FXXBJ88B8"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1FXXBJ88B8');
+    </script>
+
     <style>
         body { font-family: "Pretendard Variable", Pretendard, sans-serif; overflow: hidden; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -34,16 +44,21 @@
             </div>
             <span id="last-updated" class="text-[10px] text-gray-400 font-mono">syncing...</span>
         </div>
-        <div class="bg-gray-600 text-white px-4 py-2.5 text-xs font-bold overflow-hidden whitespace-nowrap flex items-center gap-2 shrink-0">
-            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0"></span>
+
+        <!-- [포인트 컬러 적용] 부산점: 오렌지 계열 -->
+        <div class="bg-orange-500 text-white px-4 py-2.5 text-xs font-bold overflow-hidden whitespace-nowrap flex items-center gap-2 shrink-0">
+            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse shrink-0"></span>
             <div class="animate-marquee">실시간 재고 현황입니다. 붉은색 표시는 품절입니다. 현장 상황에 따라 차이가 있을 수 있습니다.</div>
         </div>
+
         <div id="product-list" class="flex-1 overflow-y-auto p-4 pb-36 scrollbar-hide space-y-4"></div>
         <div class="absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur border-t border-gray-100 z-20 flex flex-col gap-2">
-            <button onclick="manualRefresh()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 text-sm active:scale-[0.98] transition-all">
+            
+            <!-- [포인트 컬러 적용] 부산점: 오렌지 계열 -->
+            <button onclick="manualRefresh()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 text-sm active:scale-[0.98] transition-all">
                 <i data-lucide="refresh-cw" class="w-4 h-4"></i> 새로고침
             </button>
-            <a id="store-link" href="#" target="_blank" class="w-full bg-white border border-gray-200 text-[#111] font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 text-sm active:scale-[0.98] transition-all">
+            <a id="store-link" href="#" target="_blank" onclick="trackStoreVisit()" class="w-full bg-white border border-gray-200 text-[#111] font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 text-sm active:scale-[0.98] transition-all">
                 <i data-lucide="shopping-bag" class="w-4 h-4"></i> 온라인 스토어 방문하기
             </a>
         </div>
@@ -84,6 +99,7 @@ function loadConfig() {
         products = raw.map(function(p) {
             return Object.assign({}, p, {
                 variants: p.options.map(function(o,i) {
+                    // 고객 화면이므로 name(고객용 이름)만 노출합니다.
                     return { id:p.id+'_'+i, name:typeof o==='object'?o.name:o, en:typeof o==='object'?(o.en||''):'', status:'IN_STOCK' };
                 })
             });
@@ -112,7 +128,7 @@ function render() {
         var opts = g.variants.map(function(v) {
             var out = v.status==='SOLD_OUT';
             return '<div class="opt-badge '+(out?'opt-out':'opt-in')+'">' +
-                '<div class="flex items-baseline gap-1"><span>'+v.name+'</span>'+(v.en?'<span class="text-[9px] opacity-60 uppercase font-normal">'+v.en+'</span>':'')+'</div>' +
+                '<div class="flex items-baseline gap-1 min-w-0"><span class="truncate">'+v.name+'</span>'+(v.en?'<span class="text-[9px] opacity-60 uppercase font-normal truncate">'+v.en+'</span>':'')+'</div>' +
                 '<span class="text-[9px] opacity-80 ml-1 whitespace-nowrap">'+(out?'SOLD OUT':'재고 있음')+'</span>' +
             '</div>';
         }).join('');
@@ -125,7 +141,7 @@ function render() {
                 '<div class="flex-1 min-w-0 flex flex-col">' +
                     '<span class="text-[10px] text-gray-400 font-bold tracking-wider">'+g.category+'</span>' +
                     '<h3 class="text-sm font-bold text-gray-900 leading-tight mb-0.5">'+g.name+'</h3>' +
-                    '<p class="text-[10px] text-gray-400 leading-tight mb-1 truncate">'+g.engName+'</p>' +
+                    '<p class="text-[10px] text-gray-400 leading-tight mb-1 truncate">'+(g.engName||'')+'</p>' +
                     '<div class="text-sm font-bold mt-auto">₩'+Number(g.price).toLocaleString()+'</div>' +
                 '</div>' +
             '</div>' +
@@ -135,7 +151,17 @@ function render() {
     lucide.createIcons();
 }
 
-function manualRefresh() { render(); }
+function manualRefresh() { 
+    render(); 
+    if (typeof gtag === 'function') {
+        gtag('event', 'click_refresh', { 'event_category': 'engagement', 'event_label': 'Refresh Stock Busan' });
+    }
+}
+function trackStoreVisit() {
+    if (typeof gtag === 'function') {
+        gtag('event', 'click_online_store', { 'event_category': 'outbound', 'event_label': 'Visit Online Store Busan' });
+    }
+}
 </script>
 </body>
 </html>
