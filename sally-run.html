@@ -806,11 +806,23 @@ async function loadRankings() {
 }
 
 async function addRanking(name, score) {
+  const finalScore = Math.floor(score);
+
+  // 그냥 push
   await db.ref('rankings').push({
     name:  name.toUpperCase().slice(0,10),
-    score: Math.floor(score),
+    score: finalScore,
     ts:    Date.now()
   });
+
+  // TOP 10 초과분 삭제 (최하위 제거)
+  const snap = await db.ref('rankings').orderByChild('score').get();
+  const all = [];
+  snap.forEach(child => all.push({ key: child.key, ...child.val() }));
+  all.sort((a,b) => b.score - a.score);
+  const toDelete = all.slice(MAX_RANKS);
+  await Promise.all(toDelete.map(r => db.ref('rankings/' + r.key).remove()));
+
   return await loadRankings();
 }
 
