@@ -755,163 +755,6 @@ document.getElementById('game-wrap').addEventListener('touchstart', e => { e.pre
 
 requestAnimationFrame(loop);
 
-// ============================================================
-//  SQUARE RUN — Firebase Realtime Database 랭킹
-// ============================================================
-
-// Firebase SDK (CDN)
-const _fbScript = document.createElement('script');
-_fbScript.type  = 'module';
-_fbScript.textContent = `
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getDatabase, ref, push, get, query, orderByChild, limitToLast }
-    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-
-  const firebaseConfig = {
-    apiKey:            "AIzaSyAFI5ukqgzoJeVPjrJWpe33-_Z4CxWwiz0",
-    authDomain:        "sally-run.firebaseapp.com",
-    databaseURL:       "https://sally-run-default-rtdb.firebaseio.com",
-    projectId:         "sally-run",
-    storageBucket:     "sally-run.firebasestorage.app",
-    messagingSenderId: "355781031771",
-    appId:             "1:355781031771:web:f306edabe76c38d0680c7e"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db  = getDatabase(app);
-
-  // 전역으로 노출
-  window._fbDB    = db;
-  window._fbRef   = ref;
-  window._fbPush  = push;
-  window._fbGet   = get;
-  window._fbQuery = query;
-  window._fbOrderByChild = orderByChild;
-  window._fbLimitToLast  = limitToLast;
-  window._fbReady = true;
-  window.dispatchEvent(new Event('fbReady'));
-`;
-document.head.appendChild(_fbScript);
-
-// ── 랭킹 CRUD ────────────────────────────────────────────────
-const MAX_RANKS = 10;
-let myRankEntry = null;
-
-async function loadRankings() {
-  if (!window._fbReady) await new Promise(r => window.addEventListener('fbReady', r, {once:true}));
-  try {
-    const q   = window._fbQuery(
-      window._fbRef(window._fbDB, 'rankings'),
-      window._fbOrderByChild('score'),
-      window._fbLimitToLast(MAX_RANKS)
-    );
-    const snap = await window._fbGet(q);
-    const list = [];
-    snap.forEach(child => list.push(child.val()));
-    return list.sort((a,b) => b.score - a.score);
-  } catch(e) { console.error('load failed', e); return []; }
-}
-
-async function addRanking(name, score) {
-  if (!window._fbReady) await new Promise(r => window.addEventListener('fbReady', r, {once:true}));
-  try {
-    await window._fbPush(
-      window._fbRef(window._fbDB, 'rankings'),
-      { name: name.toUpperCase().slice(0,8), score: Math.floor(score), ts: Date.now() }
-    );
-  } catch(e) { console.error('save failed', e); }
-  return await loadRankings();
-}
-
-// ── 랭킹 UI 렌더 ─────────────────────────────────────────────
-function getMedalClass(i) {
-  return ['gold','silver','bronze'][i] || '';
-}
-
-function renderRankingList(list, highlightName) {
-  const el = document.getElementById('ranking-list');
-  if (!list || list.length === 0) {
-    el.innerHTML = '<div class="rank-empty">NO RECORDS YET<br>BE THE FIRST!</div>';
-    return;
-  }
-  el.innerHTML = list.map((r, i) => {
-    const isMe = highlightName &&
-                 r.name  === highlightName.toUpperCase() &&
-                 r.score === Math.floor(myRankEntry?.score || 0);
-    return `<div class="rank-row">
-      <div class="rank-num ${getMedalClass(i)}">${String(i+1).padStart(2,'0')}</div>
-      <div class="rank-name ${isMe?'me':''}">${r.name}${isMe?' ◀':''}</div>
-      <div class="rank-score">${String(r.score).padStart(5,'0')}</div>
-    </div>`;
-  }).join('');
-}
-
-// ── 오버레이 열기 ─────────────────────────────────────────────
-async function showRankingOverlay(myScore) {
-  myRankEntry = { score: myScore };
-  const overlay  = document.getElementById('ranking-overlay');
-  const nameWrap = document.getElementById('name-input-wrap');
-
-  overlay.classList.add('show');
-  document.getElementById('ranking-list').innerHTML =
-    '<div id="ranking-loading">LOADING...</div>';
-
-  const list       = await loadRankings();
-  const qualifies  = list.length < MAX_RANKS ||
-                     myScore > (list[list.length-1]?.score || 0);
-
-  if (qualifies) {
-    document.getElementById('ranking-score-display').innerHTML =
-      `🎉 TOP ${MAX_RANKS} ENTRY!<span>${String(Math.floor(myScore)).padStart(5,'0')}</span>`;
-    nameWrap.classList.add('show');
-    document.getElementById('name-input').value = '';
-    document.getElementById('name-input').focus();
-  } else {
-    document.getElementById('ranking-score-display').innerHTML =
-      `YOUR SCORE<span>${String(Math.floor(myScore)).padStart(5,'0')}</span>`;
-    nameWrap.classList.remove('show');
-  }
-
-  renderRankingList(list, null);
-}
-
-// ── 버튼 이벤트 ──────────────────────────────────────────────
-document.getElementById('name-submit').addEventListener('click', async () => {
-  const nameEl = document.getElementById('name-input');
-  const name   = nameEl.value.trim();
-  if (!name) { nameEl.focus(); return; }
-
-  const btn = document.getElementById('name-submit');
-  btn.textContent = 'SAVING...';
-  const list = await addRanking(name, score);
-  myRankEntry.name = name.toUpperCase();
-
-  nameEl.value = '';
-  document.getElementById('name-input-wrap').classList.remove('show');
-  btn.textContent = 'REGISTER ▶';
-  renderRankingList(list, name);
-});
-
-document.getElementById('name-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('name-submit').click();
-});
-
-document.getElementById('rk-close').addEventListener('click', () => {
-  document.getElementById('ranking-overlay').classList.remove('show');
-  restartGame();
-});
-
-document.getElementById('rk-view').addEventListener('click', async () => {
-  document.getElementById('ranking-list').innerHTML =
-    '<div id="ranking-loading">LOADING...</div>';
-  const list = await loadRankings();
-  renderRankingList(list, myRankEntry?.name || null);
-});
-
-// ── 게임오버 → 랭킹 트리거 ───────────────────────────────────
-window.triggerRanking = function() {
-  if (state === 'dead') showRankingOverlay(score);
-};
 
 </script>
 
@@ -935,5 +778,126 @@ window.triggerRanking = function() {
     </div>
   </div>
 </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+// ── Firebase 초기화 ──────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:            "AIzaSyAFI5ukqgzoJeVPjrJWpe33-_Z4CxWwiz0",
+  authDomain:        "sally-run.firebaseapp.com",
+  databaseURL:       "https://sally-run-default-rtdb.firebaseio.com",
+  projectId:         "sally-run",
+  storageBucket:     "sally-run.firebasestorage.app",
+  messagingSenderId: "355781031771",
+  appId:             "1:355781031771:web:f306edabe76c38d0680c7e"
+});
+const db = firebase.database();
+
+// ── 랭킹 CRUD ────────────────────────────────────────────────
+const MAX_RANKS = 10;
+let myRankEntry = null;
+
+async function loadRankings() {
+  const snap = await db.ref('rankings').orderByChild('score').limitToLast(MAX_RANKS).get();
+  const list = [];
+  snap.forEach(child => list.push(child.val()));
+  return list.sort((a,b) => b.score - a.score);
+}
+
+async function addRanking(name, score) {
+  await db.ref('rankings').push({
+    name:  name.toUpperCase().slice(0,8),
+    score: Math.floor(score),
+    ts:    Date.now()
+  });
+  return await loadRankings();
+}
+
+// ── 랭킹 리스트 렌더 ─────────────────────────────────────────
+function renderRankingList(list, highlightName) {
+  const el = document.getElementById('ranking-list');
+  if (!list || list.length === 0) {
+    el.innerHTML = '<div class="rank-empty">NO RECORDS YET<br>BE THE FIRST!</div>';
+    return;
+  }
+  const medals = ['gold','silver','bronze'];
+  el.innerHTML = list.map((r, i) => {
+    const isMe = highlightName &&
+                 r.name  === highlightName.toUpperCase() &&
+                 r.score === Math.floor(myRankEntry?.score || 0);
+    return `<div class="rank-row">
+      <div class="rank-num ${medals[i]||''}">${String(i+1).padStart(2,'0')}</div>
+      <div class="rank-name ${isMe?'me':''}">${r.name}${isMe?' ◀':''}</div>
+      <div class="rank-score">${String(r.score).padStart(5,'0')}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── 오버레이 열기 ─────────────────────────────────────────────
+async function showRankingOverlay(myScore) {
+  myRankEntry = { score: myScore };
+  const overlay  = document.getElementById('ranking-overlay');
+  const nameWrap = document.getElementById('name-input-wrap');
+
+  overlay.classList.add('show');
+  document.getElementById('ranking-list').innerHTML =
+    '<div style="text-align:center;font-size:6px;color:#888;padding:12px;font-family:monospace;">LOADING...</div>';
+
+  const list      = await loadRankings();
+  const qualifies = list.length < MAX_RANKS ||
+                    myScore > (list[list.length-1]?.score || 0);
+
+  if (qualifies) {
+    document.getElementById('ranking-score-display').innerHTML =
+      `🎉 TOP ${MAX_RANKS} ENTRY!<span>${String(Math.floor(myScore)).padStart(5,'0')}</span>`;
+    nameWrap.classList.add('show');
+    document.getElementById('name-input').value = '';
+    setTimeout(() => document.getElementById('name-input').focus(), 100);
+  } else {
+    document.getElementById('ranking-score-display').innerHTML =
+      `YOUR SCORE<span>${String(Math.floor(myScore)).padStart(5,'0')}</span>`;
+    nameWrap.classList.remove('show');
+  }
+  renderRankingList(list, null);
+}
+
+// ── 버튼 이벤트 ──────────────────────────────────────────────
+document.getElementById('name-submit').addEventListener('click', async () => {
+  const nameEl = document.getElementById('name-input');
+  const name   = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+  const btn = document.getElementById('name-submit');
+  btn.textContent = 'SAVING...';
+  const list = await addRanking(name, score);
+  myRankEntry.name = name.toUpperCase();
+  nameEl.value = '';
+  document.getElementById('name-input-wrap').classList.remove('show');
+  btn.textContent = 'REGISTER ▶';
+  renderRankingList(list, name);
+});
+
+document.getElementById('name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('name-submit').click();
+});
+
+document.getElementById('rk-close').addEventListener('click', () => {
+  document.getElementById('ranking-overlay').classList.remove('show');
+  restartGame();
+});
+
+document.getElementById('rk-view').addEventListener('click', async () => {
+  document.getElementById('ranking-list').innerHTML =
+    '<div style="text-align:center;font-size:6px;color:#888;padding:12px;font-family:monospace;">LOADING...</div>';
+  const list = await loadRankings();
+  renderRankingList(list, myRankEntry?.name || null);
+});
+
+// ── 게임오버 → 랭킹 트리거 (전역) ───────────────────────────
+window.triggerRanking = function() {
+  if (state === 'dead') showRankingOverlay(score);
+};
+</script>
+
 </body>
 </html>
