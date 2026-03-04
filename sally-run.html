@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>SQUARE RUN</title>
+<title>Sally RUN</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap');
 
@@ -581,15 +581,9 @@ function checkMilestone(prevScore) {
   if (curr100 > prev100) flashTimer = 30;
 }
 
-// 팝업 브랜딩 장식 (배경에 흐르는 텍스트)
+// 배경 브랜드 텍스트 비활성화
 let bgTextX = GW;
-function drawBgText() {
-  ctx.fillStyle = 'rgba(180,168,150,0.25)';
-  ctx.font = '9px monospace';
-  ctx.fillText('MMMM POP-UP · KPOP SQUARE · HONGDAE ·', bgTextX, GROUND_Y - 8);
-  bgTextX -= speed * 0.5;
-  if (bgTextX < -400) bgTextX = GW;
-}
+function drawBgText() { /* 비활성화 */ }
 
 // ── 오버레이 ─────────────────────────────────────────────────
 function drawIdle() {
@@ -722,7 +716,6 @@ function loop(ts) {
   clouds.forEach(c => drawCloud(c.x, c.y));
 
   // 배경 브랜드 텍스트
-  if (state === 'playing') drawBgText();
 
   // 지면
   drawGround();
@@ -799,26 +792,34 @@ const MAX_RANKS = 10;
 let myRankEntry = null;
 
 async function loadRankings() {
-  const snap = await db.ref('rankings').orderByChild('score').limitToLast(MAX_RANKS).get();
+  // 전체 가져와서 JS에서 정렬/슬라이스 (인덱스 의존 안 함)
+  const snap = await db.ref('rankings').get();
   const list = [];
-  snap.forEach(child => list.push(child.val()));
-  return list.sort((a,b) => b.score - a.score);
+  snap.forEach(child => {
+    const v = child.val();
+    list.push({ key: child.key, name: v.name, score: v.score, ts: v.ts });
+  });
+  list.sort((a,b) => b.score - a.score);
+  return list.slice(0, MAX_RANKS);
 }
 
 async function addRanking(name, score) {
   const finalScore = Math.floor(score);
 
-  // 그냥 push
+  // 새 기록 push
   await db.ref('rankings').push({
     name:  name.toUpperCase().slice(0,10),
     score: finalScore,
     ts:    Date.now()
   });
 
-  // TOP 10 초과분 삭제 (최하위 제거)
-  const snap = await db.ref('rankings').orderByChild('score').get();
+  // 전체 가져와서 TOP 10 초과분 삭제
+  const snap = await db.ref('rankings').get();
   const all = [];
-  snap.forEach(child => all.push({ key: child.key, ...child.val() }));
+  snap.forEach(child => {
+    const v = child.val();
+    all.push({ key: child.key, score: v.score });
+  });
   all.sort((a,b) => b.score - a.score);
   const toDelete = all.slice(MAX_RANKS);
   await Promise.all(toDelete.map(r => db.ref('rankings/' + r.key).remove()));
@@ -856,9 +857,9 @@ async function showRankingOverlay(myScore) {
   document.getElementById('ranking-list').innerHTML =
     '<div style="text-align:center;font-size:6px;color:#888;padding:12px;font-family:monospace;">LOADING...</div>';
 
-  const list      = await loadRankings();
-  const qualifies = list.length < MAX_RANKS ||
-                    myScore > (list[list.length-1]?.score || 0);
+  const list       = await loadRankings();
+  const lowestScore = list.length >= MAX_RANKS ? (list[MAX_RANKS-1]?.score || 0) : 0;
+  const qualifies   = list.length < MAX_RANKS || myScore > lowestScore;
 
   if (qualifies) {
     document.getElementById('ranking-score-display').innerHTML =
