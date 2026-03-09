@@ -16,8 +16,8 @@
             --white: #f5f4f0;
             --gray: #8a8a8a;
             --border: #2a2a2a;
-            --hongdae: #4ade80;
-            --busan: #fb923c;
+            --first: #4ade80;
+            --second: #fb923c;
             --third: #60a5fa;
             --fourth: #c084fc;
             --fifth: #f472b6;
@@ -151,16 +151,16 @@
         .card:active { transform: translateX(4px) scale(0.99); }
 
         /* 홍대 */
-        .card-hongdae::before { background: linear-gradient(135deg, rgba(74,222,128,0.08), transparent); }
-        .card-hongdae:hover { border-color: rgba(74,222,128,0.3); box-shadow: 0 0 0 1px rgba(74,222,128,0.3), inset 0 0 20px rgba(74,222,128,0.04); }
-        .card-hongdae .dot { background: var(--hongdae); }
-        .card-hongdae .arrow { color: var(--hongdae); }
+        .card-first::before { background: linear-gradient(135deg, rgba(74,222,128,0.08), transparent); }
+        .card-first:hover { border-color: rgba(74,222,128,0.3); box-shadow: 0 0 0 1px rgba(74,222,128,0.3), inset 0 0 20px rgba(74,222,128,0.04); }
+        .card-first .dot { background: var(--first); }
+        .card-first .arrow { color: var(--first); }
 
         /* 부산 */
-        .card-busan::before { background: linear-gradient(135deg, rgba(251,146,60,0.08), transparent); }
-        .card-busan:hover { border-color: rgba(251,146,60,0.3); box-shadow: 0 0 0 1px rgba(251,146,60,0.3), inset 0 0 20px rgba(251,146,60,0.04); }
-        .card-busan .dot { background: var(--busan); }
-        .card-busan .arrow { color: var(--busan); }
+        .card-second::before { background: linear-gradient(135deg, rgba(251,146,60,0.08), transparent); }
+        .card-second:hover { border-color: rgba(251,146,60,0.3); box-shadow: 0 0 0 1px rgba(251,146,60,0.3), inset 0 0 20px rgba(251,146,60,0.04); }
+        .card-second .dot { background: var(--second); }
+        .card-second .arrow { color: var(--second); }
 
         /* Third */
         .card-third::before { background: linear-gradient(135deg, rgba(96,165,250,0.08), transparent); }
@@ -332,9 +332,9 @@
     <!-- 고객용 -->
     <div class="section">
         <p class="section-label fade-up">고객용 재고 현황</p>
-        <a href="stock-front-hongdae.html" class="card card-hongdae fade-up">
+        <a href="stock-front-first.html" class="card card-first fade-up">
             <div class="card-left">
-                <div class="dot pulse" style="background:var(--hongdae)"></div>
+                <div class="dot pulse" style="background:var(--first)"></div>
                 <div class="card-info">
                     <div class="card-name">First 재고 현황</div>
                     <div class="card-desc">FIRST STORE</div>
@@ -342,9 +342,9 @@
             </div>
             <span class="arrow">→</span>
         </a>
-        <a href="stock-front-busan.html" class="card card-busan fade-up">
+        <a href="stock-front-second.html" class="card card-second fade-up">
             <div class="card-left">
-                <div class="dot pulse" style="background:var(--busan)"></div>
+                <div class="dot pulse" style="background:var(--second)"></div>
                 <div class="card-info">
                     <div class="card-name">Second 재고 현황</div>
                     <div class="card-desc">SECOND STORE</div>
@@ -387,9 +387,9 @@
     <!-- 스태프용 -->
     <div class="section">
         <p class="section-label fade-up">현장 스태프용</p>
-        <a href="stock-back-hongdae.html" class="card card-hongdae fade-up">
+        <a href="stock-back-first.html" class="card card-first fade-up">
             <div class="card-left">
-                <div class="dot" style="background:var(--hongdae); opacity:0.6"></div>
+                <div class="dot" style="background:var(--first); opacity:0.6"></div>
                 <div class="card-info">
                     <div class="card-name">First 재고 관리</div>
                     <div class="card-desc">STOCK MANAGER · FIRST</div>
@@ -397,9 +397,9 @@
             </div>
             <span class="arrow">→</span>
         </a>
-        <a href="stock-back-busan.html" class="card card-busan fade-up">
+        <a href="stock-back-second.html" class="card card-second fade-up">
             <div class="card-left">
-                <div class="dot" style="background:var(--busan); opacity:0.6"></div>
+                <div class="dot" style="background:var(--second); opacity:0.6"></div>
                 <div class="card-info">
                     <div class="card-name">Second 재고 관리</div>
                     <div class="card-desc">STOCK MANAGER · SECOND</div>
