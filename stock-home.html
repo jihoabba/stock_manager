@@ -19,6 +19,8 @@
             --hongdae: #4ade80;
             --busan: #fb923c;
             --third: #60a5fa;
+            --fourth: #c084fc;
+            --fifth: #f472b6;
             --admin: #a78bfa;
         }
 
@@ -165,6 +167,18 @@
         .card-third:hover { border-color: rgba(96,165,250,0.3); box-shadow: 0 0 0 1px rgba(96,165,250,0.3), inset 0 0 20px rgba(96,165,250,0.04); }
         .card-third .dot { background: var(--third); }
         .card-third .arrow { color: var(--third); }
+
+        /* Fourth */
+        .card-fourth::before { background: linear-gradient(135deg, rgba(192,132,252,0.08), transparent); }
+        .card-fourth:hover { border-color: rgba(192,132,252,0.3); box-shadow: 0 0 0 1px rgba(192,132,252,0.3), inset 0 0 20px rgba(192,132,252,0.04); }
+        .card-fourth .dot { background: var(--fourth); }
+        .card-fourth .arrow { color: var(--fourth); }
+
+        /* Fifth */
+        .card-fifth::before { background: linear-gradient(135deg, rgba(244,114,182,0.08), transparent); }
+        .card-fifth:hover { border-color: rgba(244,114,182,0.3); box-shadow: 0 0 0 1px rgba(244,114,182,0.3), inset 0 0 20px rgba(244,114,182,0.04); }
+        .card-fifth .dot { background: var(--fifth); }
+        .card-fifth .arrow { color: var(--fifth); }
 
         /* 어드민 */
         .card-admin::before { background: linear-gradient(135deg, rgba(167,139,250,0.08), transparent); }
@@ -322,8 +336,8 @@
             <div class="card-left">
                 <div class="dot pulse" style="background:var(--hongdae)"></div>
                 <div class="card-info">
-                    <div class="card-name">홍대점 재고 현황</div>
-                    <div class="card-desc">K-POP SQUARE HONGDAE</div>
+                    <div class="card-name">First 재고 현황</div>
+                    <div class="card-desc">FIRST STORE</div>
                 </div>
             </div>
             <span class="arrow">→</span>
@@ -332,8 +346,8 @@
             <div class="card-left">
                 <div class="dot pulse" style="background:var(--busan)"></div>
                 <div class="card-info">
-                    <div class="card-name">부산점 재고 현황</div>
-                    <div class="card-desc">SHINSEGAE CENTUM CITY BUSAN</div>
+                    <div class="card-name">Second 재고 현황</div>
+                    <div class="card-desc">SECOND STORE</div>
                 </div>
             </div>
             <span class="arrow">→</span>
@@ -348,6 +362,26 @@
             </div>
             <span class="arrow">→</span>
         </a>
+        <a href="stock-front-fourth.html" class="card card-fourth fade-up">
+            <div class="card-left">
+                <div class="dot pulse" style="background:var(--fourth)"></div>
+                <div class="card-info">
+                    <div class="card-name">Fourth 재고 현황</div>
+                    <div class="card-desc">FOURTH STORE</div>
+                </div>
+            </div>
+            <span class="arrow">→</span>
+        </a>
+        <a href="stock-front-fifth.html" class="card card-fifth fade-up">
+            <div class="card-left">
+                <div class="dot pulse" style="background:var(--fifth)"></div>
+                <div class="card-info">
+                    <div class="card-name">Fifth 재고 현황</div>
+                    <div class="card-desc">FIFTH STORE</div>
+                </div>
+            </div>
+            <span class="arrow">→</span>
+        </a>
     </div>
 
     <!-- 스태프용 -->
@@ -357,8 +391,8 @@
             <div class="card-left">
                 <div class="dot" style="background:var(--hongdae); opacity:0.6"></div>
                 <div class="card-info">
-                    <div class="card-name">홍대점 재고 관리</div>
-                    <div class="card-desc">STOCK MANAGER · HONGDAE</div>
+                    <div class="card-name">First 재고 관리</div>
+                    <div class="card-desc">STOCK MANAGER · FIRST</div>
                 </div>
             </div>
             <span class="arrow">→</span>
@@ -367,8 +401,8 @@
             <div class="card-left">
                 <div class="dot" style="background:var(--busan); opacity:0.6"></div>
                 <div class="card-info">
-                    <div class="card-name">부산점 재고 관리</div>
-                    <div class="card-desc">STOCK MANAGER · BUSAN</div>
+                    <div class="card-name">Second 재고 관리</div>
+                    <div class="card-desc">STOCK MANAGER · SECOND</div>
                 </div>
             </div>
             <span class="arrow">→</span>
@@ -383,6 +417,26 @@
             </div>
             <span class="arrow">→</span>
         </a>
+        <a href="stock-back-fourth.html" class="card card-fourth fade-up">
+            <div class="card-left">
+                <div class="dot" style="background:var(--fourth); opacity:0.6"></div>
+                <div class="card-info">
+                    <div class="card-name">Fourth 재고 관리</div>
+                    <div class="card-desc">STOCK MANAGER · FOURTH</div>
+                </div>
+            </div>
+            <span class="arrow">→</span>
+        </a>
+        <a href="stock-back-fifth.html" class="card card-fifth fade-up">
+            <div class="card-left">
+                <div class="dot" style="background:var(--fifth); opacity:0.6"></div>
+                <div class="card-info">
+                    <div class="card-name">Fifth 재고 관리</div>
+                    <div class="card-desc">STOCK MANAGER · FIFTH</div>
+                </div>
+            </div>
+            <span class="arrow">→</span>
+        </a>
     </div>
 
     <!-- 어드민 -->
@@ -393,7 +447,7 @@
                 <div class="dot" style="background:var(--admin)"></div>
                 <div class="card-info">
                     <div class="card-name">통합 어드민</div>
-                    <div class="card-desc">ADMIN · 홍대 + 부산 + Third 관리</div>
+                    <div class="card-desc">ADMIN · First · Second · Third · Fourth · Fifth</div>
                 </div>
             </div>
             <span class="arrow">→</span>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>POP-UP LIVE STOCK — First</title>
+    <title>POP-UP LIVE STOCK — Fifth</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
@@ -39,32 +39,32 @@
     /></noscript>
     <!-- End Facebook Pixel -->
 </head>
-<body class="bg-[#f0fdf4] text-[#111] h-[100dvh] flex flex-col justify-center items-center">
-<div class="w-full max-w-md h-full sm:h-auto sm:max-h-[95vh] flex flex-col sm:border-2 sm:border-green-300 sm:rounded-xl sm:shadow-xl bg-white overflow-hidden">
+<body class="bg-[#fdf2f8] text-[#111] h-[100dvh] flex flex-col justify-center items-center">
+<div class="w-full max-w-md h-full sm:h-auto sm:max-h-[95vh] flex flex-col sm:border-2 sm:border-pink-300 sm:rounded-xl sm:shadow-xl bg-white overflow-hidden">
     <div class="w-full h-full flex flex-col bg-white relative overflow-hidden">
-        <!-- 헤더 — 홍대 GREEN -->
-        <div class="bg-green-800 p-4 flex items-center justify-between shrink-0">
+        <!-- 헤더 — Fifth PINK -->
+        <div class="bg-pink-700 p-4 flex items-center justify-between shrink-0">
             <div>
                 <p class="font-bold text-lg leading-none tracking-tight text-white">POP-UP LIVE STOCK</p>
-                <p id="subtitle" class="text-[10px] text-green-300 font-medium mt-1">Loading...</p>
+                <p id="subtitle" class="text-[10px] text-pink-200 font-medium mt-1">Loading...</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block"></span>
-                <span id="last-updated" class="text-[10px] text-green-300 font-mono">syncing...</span>
+                <span class="w-2 h-2 rounded-full bg-pink-300 animate-pulse inline-block"></span>
+                <span id="last-updated" class="text-[10px] text-pink-200 font-mono">syncing...</span>
             </div>
         </div>
         <!-- 배너 -->
-        <div class="bg-green-700 text-white px-4 py-2 text-xs font-bold overflow-hidden whitespace-nowrap flex items-center gap-2 shrink-0">
-            <span class="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse shrink-0"></span>
+        <div class="bg-pink-600 text-white px-4 py-2 text-xs font-bold overflow-hidden whitespace-nowrap flex items-center gap-2 shrink-0">
+            <span class="w-1.5 h-1.5 rounded-full bg-pink-200 animate-pulse shrink-0"></span>
             <div class="animate-marquee">실시간 재고 현황입니다. 붉은색 표시는 품절입니다. 현장 상황에 따라 차이가 있을 수 있습니다.</div>
         </div>
         <div id="product-list" class="flex-1 overflow-y-auto p-4 pb-36 scrollbar-hide space-y-4"></div>
         <!-- 푸터 -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur border-t border-green-100 z-20 flex flex-col gap-2">
-            <button onclick="manualRefresh()" class="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 text-sm active:scale-[0.98] transition-all">
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur border-t border-pink-100 z-20 flex flex-col gap-2">
+            <button onclick="manualRefresh()" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 text-sm active:scale-[0.98] transition-all">
                 <i data-lucide="refresh-cw" class="w-4 h-4"></i> 새로고침
             </button>
-            <a id="store-link" href="#" target="_blank" class="w-full bg-white border border-green-200 text-green-800 font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 text-sm active:scale-[0.98] transition-all hover:bg-green-50">
+            <a id="store-link" href="#" target="_blank" class="w-full bg-white border border-pink-200 text-pink-800 font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 text-sm active:scale-[0.98] transition-all hover:bg-pink-50">
                 <i data-lucide="shopping-bag" class="w-4 h-4"></i> 온라인 스토어 방문하기
             </a>
         </div>
@@ -81,8 +81,8 @@ firebase.initializeApp({
 });
 var auth = firebase.auth();
 var db   = firebase.firestore();
-var APP_ID = 'mmmm-popup-hongdae';
-var DEFAULT_SETTINGS = { location:"케이팝스퀘어 홍대 (K-POP SQUARE HONGDAE)", storeUrl:"https://linefriendssquare.com" };
+var APP_ID = 'mmmm-popup-fifth';
+var DEFAULT_SETTINGS = { location:"Fifth Store", storeUrl:"https://linefriendssquare.com" };
 var products = [];
 var unsub = null;
 
@@ -134,14 +134,14 @@ function render() {
                 '<span class="text-[9px] opacity-80 ml-2 whitespace-nowrap">'+(out?'SOLD OUT':'재고 있음')+'</span>' +
             '</div>';
         }).join('');
-        return '<div class="relative bg-white border-2 '+(allOut?'border-gray-200':'border-green-100')+' rounded-xl p-3 shadow-sm overflow-hidden">' +
+        return '<div class="relative bg-white border-2 '+(allOut?'border-gray-200':'border-pink-100')+' rounded-xl p-3 shadow-sm overflow-hidden">' +
             (allOut?'<div class="soldout-overlay"><div class="bg-red-600 text-white text-sm font-black px-4 py-2 rounded-full -rotate-12 shadow-lg">SOLD OUT</div></div>':'') +
             '<div class="flex gap-4">' +
                 '<div class="w-24 h-24 shrink-0 rounded-lg bg-gray-50 overflow-hidden border border-black/5">' +
                     '<img src="'+g.image+'" class="w-full h-full object-cover'+(allOut?' grayscale opacity-50':'')+'" loading="lazy">' +
                 '</div>' +
                 '<div class="flex-1 min-w-0 flex flex-col">' +
-                    '<span class="text-[10px] text-green-600 font-bold tracking-wider">'+g.category+'</span>' +
+                    '<span class="text-[10px] text-pink-600 font-bold tracking-wider">'+g.category+'</span>' +
                     '<h3 class="text-sm font-bold text-gray-900 leading-tight mb-0.5">'+g.name+'</h3>' +
                     '<p class="text-[10px] text-gray-400 leading-tight mb-1 truncate">'+g.engName+'</p>' +
                     '<div class="text-sm font-bold mt-auto">&#8361;'+Number(g.price).toLocaleString()+'</div>' +

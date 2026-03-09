@@ -84,7 +84,7 @@
                 <i data-lucide="shield" class="w-5 h-5 text-white"></i>
             </div>
             <h1 class="text-xl font-bold">Popup Admin</h1>
-            <p class="text-xs text-gray-400 mt-1">홍대 · 부산 · Third 통합 관리</p>
+            <p class="text-xs text-gray-400 mt-1">First · Second · Third · Fourth · Fifth 통합 관리</p>
         </div>
         <label class="lbl">관리자 비밀번호</label>
         <input type="password" id="admin-pw" class="inp mb-3" placeholder="비밀번호 입력">
@@ -102,9 +102,11 @@
         <div class="flex items-center gap-3">
             <span class="font-bold text-sm">POPUP ADMIN</span>
             <div class="flex gap-1 bg-gray-700/60 rounded-2xl p-1">
-                <button class="branch-tab on" id="branch-hongdae">홍대</button>
-                <button class="branch-tab off" id="branch-busan">부산</button>
+                <button class="branch-tab on" id="branch-hongdae">First</button>
+                <button class="branch-tab off" id="branch-busan">Second</button>
                 <button class="branch-tab off" id="branch-third">Third</button>
+                <button class="branch-tab off" id="branch-fourth">Fourth</button>
+                <button class="branch-tab off" id="branch-fifth">Fifth</button>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -279,9 +281,11 @@ var auth = firebase.auth();
 var db   = firebase.firestore();
 
 var BRANCHES = {
-    hongdae: { appId:'mmmm-popup-hongdae', name:'홍대점', defaultLocation:'케이팝스퀘어 홍대 (K-POP SQUARE HONGDAE)', defaultUrl:'https://linefriendssquare.com', badgeClass:'bg-green-50 text-green-700 border-green-200', dotColor:'bg-green-500', headerColor:'bg-green-700' },
-    busan:   { appId:'mmmm-popup-busan',   name:'부산점', defaultLocation:'신세계 센텀시티 부산 (Shinsegae Centum City Busan)', defaultUrl:'https://linefriendssquare.com', badgeClass:'bg-orange-50 text-orange-700 border-orange-200', dotColor:'bg-orange-500', headerColor:'bg-orange-700' },
-    third:   { appId:'mmmm-popup-third',   name:'Third', defaultLocation:'Third Store', defaultUrl:'https://linefriendssquare.com', badgeClass:'bg-blue-50 text-blue-700 border-blue-200', dotColor:'bg-blue-500', headerColor:'bg-blue-700' }
+    hongdae: { appId:'mmmm-popup-hongdae', name:'First',  defaultLocation:'First Store',  defaultUrl:'https://linefriendssquare.com', badgeClass:'bg-green-50 text-green-700 border-green-200',   dotColor:'bg-green-500',  headerColor:'bg-green-700' },
+    busan:   { appId:'mmmm-popup-busan',   name:'Second', defaultLocation:'Second Store', defaultUrl:'https://linefriendssquare.com', badgeClass:'bg-orange-50 text-orange-700 border-orange-200', dotColor:'bg-orange-500', headerColor:'bg-orange-700' },
+    third:   { appId:'mmmm-popup-third',   name:'Third',  defaultLocation:'Third Store',  defaultUrl:'https://linefriendssquare.com', badgeClass:'bg-blue-50 text-blue-700 border-blue-200',      dotColor:'bg-blue-500',   headerColor:'bg-blue-700' },
+    fourth:  { appId:'mmmm-popup-fourth',  name:'Fourth', defaultLocation:'Fourth Store', defaultUrl:'https://linefriendssquare.com', badgeClass:'bg-purple-50 text-purple-700 border-purple-200', dotColor:'bg-purple-500', headerColor:'bg-purple-700' },
+    fifth:   { appId:'mmmm-popup-fifth',   name:'Fifth',  defaultLocation:'Fifth Store',  defaultUrl:'https://linefriendssquare.com', badgeClass:'bg-pink-50 text-pink-700 border-pink-200',      dotColor:'bg-pink-500',   headerColor:'bg-pink-700' }
 };
 var PRESETS = {
     mmmm:   [{name:"먀미",staffMemo:""},{name:"므모",staffMemo:""},{name:"미므",staffMemo:""},{name:"뫄",staffMemo:""},{name:"몌무",staffMemo:""}],
@@ -330,6 +334,8 @@ function bindEvents() {
     $id('branch-hongdae').addEventListener('click', function(){ switchBranch('hongdae'); });
     $id('branch-busan').addEventListener('click',   function(){ switchBranch('busan'); });
     $id('branch-third').addEventListener('click',   function(){ switchBranch('third'); });
+    $id('branch-fourth').addEventListener('click',  function(){ switchBranch('fourth'); });
+    $id('branch-fifth').addEventListener('click',   function(){ switchBranch('fifth'); });
     $id('tab-btn-products').addEventListener('click', function(){ switchTab('products'); });
     $id('tab-btn-settings').addEventListener('click',  function(){ switchTab('settings'); });
     $id('add-product-btn').addEventListener('click', openAdd);
@@ -391,6 +397,8 @@ function switchBranch(branch) {
     $id('branch-hongdae').className='branch-tab '+(branch==='hongdae'?'on':'off');
     $id('branch-busan').className  ='branch-tab '+(branch==='busan'?'on':'off');
     $id('branch-third').className  ='branch-tab '+(branch==='third'?'on':'off');
+    $id('branch-fourth').className ='branch-tab '+(branch==='fourth'?'on':'off');
+    $id('branch-fifth').className  ='branch-tab '+(branch==='fifth'?'on':'off');
     var b=BRANCHES[branch];
     var badge=$id('branch-badge');
     badge.className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-4 border '+b.badgeClass;

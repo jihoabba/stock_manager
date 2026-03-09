@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>STOCK MANAGER — Second</title>
+    <title>STOCK MANAGER — Fifth</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
@@ -33,44 +33,44 @@
     /></noscript>
     <!-- End Facebook Pixel -->
 </head>
-<body class="bg-orange-50 text-[#111] h-[100dvh] flex flex-col justify-center items-center">
+<body class="bg-pink-50 text-[#111] h-[100dvh] flex flex-col justify-center items-center">
 
 <!-- 로그인 -->
 <div id="login-screen" class="w-full max-w-sm px-6">
     <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 bg-orange-700 rounded-2xl mb-4">
+        <div class="inline-flex items-center justify-center w-14 h-14 bg-pink-700 rounded-2xl mb-4">
             <i data-lucide="package-check" class="w-7 h-7 text-white"></i>
         </div>
         <h1 class="text-xl font-bold">재고 관리</h1>
-        <p class="text-sm text-orange-700 font-bold mt-1">Second Store</p>
+        <p class="text-sm text-pink-700 font-bold mt-1" id="login-location">Fifth Store</p>
     </div>
     <input type="password" id="staff-pw" placeholder="비밀번호 입력"
-        class="w-full border-2 border-orange-200 rounded-xl p-3.5 mb-3 text-center font-mono text-base focus:border-orange-600 outline-none transition-colors bg-white">
-    <button id="login-btn" class="w-full bg-orange-700 hover:bg-orange-800 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+        class="w-full border-2 border-pink-200 rounded-xl p-3.5 mb-3 text-center font-mono text-base focus:border-pink-600 outline-none transition-colors bg-white">
+    <button id="login-btn" class="w-full bg-pink-700 hover:bg-pink-800 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
         <i data-lucide="log-in" class="w-4 h-4"></i> 입장
     </button>
     <p id="login-error" class="hidden text-center text-xs text-red-500 mt-3">비밀번호가 올바르지 않습니다.</p>
 </div>
 
 <!-- 메인 -->
-<div id="main-screen" class="hidden w-full max-w-md h-full sm:h-auto sm:max-h-[95vh] flex flex-col sm:border-2 sm:border-orange-300 sm:rounded-xl sm:shadow-xl bg-white overflow-hidden">
+<div id="main-screen" class="hidden w-full max-w-md h-full sm:h-auto sm:max-h-[95vh] flex flex-col sm:border-2 sm:border-pink-300 sm:rounded-xl sm:shadow-xl bg-white overflow-hidden">
     <div class="w-full h-full flex flex-col overflow-hidden">
-        <!-- 헤더 — 홍대 GREEN -->
-        <div class="px-4 py-3 flex items-center justify-between shrink-0 bg-orange-700 text-white">
+        <!-- 헤더 — Fifth PINK -->
+        <div class="px-4 py-3 flex items-center justify-between shrink-0 bg-pink-700 text-white">
             <div>
                 <p class="font-bold text-base leading-none">STOCK MANAGER</p>
-                <p class="text-[10px] text-orange-300 mt-0.5">Second Store</p>
+                <p class="text-[10px] text-pink-300 mt-0.5" id="header-location">Fifth Store</p>
             </div>
             <div class="flex items-center gap-3">
-                <span id="conn-status" class="text-[10px] font-mono text-orange-300">연결 중...</span>
-                <button id="logout-btn" class="text-orange-300 hover:text-white transition-colors">
+                <span id="conn-status" class="text-[10px] font-mono text-pink-300">연결 중...</span>
+                <button id="logout-btn" class="text-pink-300 hover:text-white transition-colors">
                     <i data-lucide="log-out" class="w-4 h-4"></i>
                 </button>
             </div>
         </div>
         <!-- 전체 버튼 -->
-        <div class="px-4 py-2 bg-orange-50 border-b border-orange-100 flex gap-2 shrink-0">
-            <button id="all-in-btn"  class="flex-1 text-xs font-bold py-2 rounded-lg bg-green-100 text-green-800 border border-orange-200 active:scale-95 transition-all">✓ 전체 재고 있음</button>
+        <div class="px-4 py-2 bg-pink-50 border-b border-pink-100 flex gap-2 shrink-0">
+            <button id="all-in-btn"  class="flex-1 text-xs font-bold py-2 rounded-lg bg-green-100 text-green-800 border border-green-200 active:scale-95 transition-all">✓ 전체 재고 있음</button>
             <button id="all-out-btn" class="flex-1 text-xs font-bold py-2 rounded-lg bg-red-100 text-red-700 border border-red-200 active:scale-95 transition-all">✗ 전체 품절 처리</button>
         </div>
         <div id="stock-list" class="flex-1 overflow-y-auto p-3 pb-4 scrollbar-hide space-y-3"></div>
@@ -93,12 +93,12 @@ firebase.initializeApp({
 });
 var auth = firebase.auth();
 var db   = firebase.firestore();
-var APP_ID = 'mmmm-popup-busan';
+var APP_ID = 'mmmm-popup-fifth';
 var STOCK_PATH    = 'artifacts/'+APP_ID+'/public/data/inventory/all_stock';
 var PRODUCTS_PATH = 'artifacts/'+APP_ID+'/public/data/config/products';
 var SETTINGS_PATH = 'artifacts/'+APP_ID+'/public/data/config/settings';
 var products = [];
-var settings = { adminPassword:'0715' };
+var settings = { adminPassword:'0715', location:'Fifth Store' };
 var unsub = null;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -107,6 +107,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return db.doc(SETTINGS_PATH).get();
     }).then(function(snap) {
         if (snap.exists) settings = Object.assign({}, settings, snap.data());
+        var loc = settings.location || 'Fifth Store';
+        document.getElementById('login-location').innerText = loc;
+        document.getElementById('header-location').innerText = loc;
     }).catch(console.error);
     document.getElementById('staff-pw').addEventListener('keypress', function(e){ if(e.key==='Enter') doLogin(); });
     document.getElementById('login-btn').addEventListener('click', doLogin);
@@ -144,7 +147,7 @@ function loadAndListen() {
                     return {
                         id: p.id+'_'+i,
                         name: typeof o==='object' ? o.name : o,
-                        staffMemo: typeof o==='object' ? (o.staffMemo||'') : '', // ★ 직원 메모
+                        staffMemo: typeof o==='object' ? (o.staffMemo||'') : '',
                         status: 'IN_STOCK'
                     };
                 })
@@ -175,7 +178,6 @@ function renderStock() {
                 (out?'bg-red-50 border-red-200 text-red-400':'bg-green-50 border-green-400 text-green-800') +
                 '" data-vid="'+v.id+'" data-next="'+(out?'IN_STOCK':'SOLD_OUT')+'">' +
                 '<span class="text-xs font-bold leading-tight">'+v.name+'</span>' +
-                // ★ staffMemo 있으면 작게 표시
                 (v.staffMemo ? '<span class="text-[9px] font-medium opacity-70 mt-0.5 leading-tight">'+v.staffMemo+'</span>' : '') +
                 '<span class="text-[10px] font-mono mt-1">'+(out?'품절':'판매중')+'</span>' +
                 (!out?'<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>':'') +
