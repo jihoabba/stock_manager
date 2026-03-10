@@ -215,7 +215,7 @@ function setAll(status) {
     products.forEach(function(g){ g.variants.forEach(function(v){ v.status=status; batch[v.id]=status; }); });
     renderStock();
     showToast(status==='SOLD_OUT'?'전체 품절 처리':'전체 재고 있음');
-    db.doc(STOCK_PATH).set(batch).catch(function(e){alert('저장 실패: '+e.message);});
+    db.doc(STOCK_PATH).set(batch,{merge:true}).catch(function(e){alert('저장 실패: '+e.message);});
 }
 
 function showToast(msg) {

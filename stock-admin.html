@@ -303,6 +303,7 @@ var currentBranch   = 'first';
 var editingProducts = [];
 var savedSettings   = {};
 var previewStock    = {};
+var isDirty   = false;
 var modalIdx  = null;
 var modalOpts = [];
 var dragSrc   = null;
@@ -393,6 +394,8 @@ function doLogout() {
 
 function switchBranch(branch) {
     if(currentBranch===branch) return;
+    if(isDirty && !confirm(BRANCHES[currentBranch].name+' 지점에 저장하지 않은 변경사항이 있습니다.\n저장하지 않고 이동할까요?')) return;
+    isDirty=false;
     currentBranch=branch;
     $id('branch-first').className='branch-tab '+(branch==='first'?'on':'off');
     $id('branch-second').className  ='branch-tab '+(branch==='second'?'on':'off');
@@ -487,7 +490,7 @@ function renderProductList() {
         if(dragSrc===null||dragSrc===tgt){dragSrc=null;return;}
         var item=editingProducts.splice(dragSrc,1)[0];
         editingProducts.splice(tgt,0,item);
-        dragSrc=null;renderProductList();renderPreview();
+        dragSrc=null;isDirty=true;renderProductList();renderPreview();
     };
 }
 
@@ -519,11 +522,15 @@ function renderPreview() {
 function saveProducts() {
     var btn=$id('save-products-btn');
     btn.disabled=true;btn.innerHTML='<div class="spin"></div><span>저장 중...</span>';
+    // 기존 재고 상태를 유지하고 신규 variant만 IN_STOCK으로 설정
     var stockObj={};
-    editingProducts.forEach(function(p){p.options.forEach(function(o,i){stockObj[p.id+'_'+i]='IN_STOCK';});});
+    editingProducts.forEach(function(p){p.options.forEach(function(o,i){
+        var vid=p.id+'_'+i;
+        stockObj[vid]=previewStock[vid]||'IN_STOCK';
+    });});
     db.doc(path('config/products')).set({list:editingProducts})
         .then(function(){return db.doc(path('inventory/all_stock')).set(stockObj);})
-        .then(function(){previewStock=stockObj;renderPreview();showToast(BRANCHES[currentBranch].name+' 저장 완료!');})
+        .then(function(){previewStock=stockObj;isDirty=false;renderPreview();showToast(BRANCHES[currentBranch].name+' 저장 완료!');})
         .catch(function(e){alert('저장 실패: '+e.message);})
         .finally(function(){
             btn.disabled=false;
@@ -579,11 +586,12 @@ function confirmModal() {
     var product={id:modalIdx!==null?editingProducts[modalIdx].id:'g'+Date.now(),name:name,engName:engName,price:price,category:category,image:image,options:modalOpts.slice()};
     if(modalIdx!==null) editingProducts[modalIdx]=product;
     else editingProducts.push(product);
+    isDirty=true;
     closeModal();renderProductList();renderPreview();
 }
 function deleteProduct(idx) {
     if(!confirm('"'+editingProducts[idx].name+'" 삭제할까요?')) return;
-    editingProducts.splice(idx,1);renderProductList();renderPreview();
+    editingProducts.splice(idx,1);isDirty=true;renderProductList();renderPreview();
 }
 
 // ── 옵션 ──
@@ -700,6 +708,7 @@ function handleExcelUpload(e) {
             if(!confirm(parsed.length+'개 상품을 불러왔습니다. 기존 목록을 덮어씌울까요?')) return;
 
             editingProducts = parsed;
+            isDirty=true;
             renderProductList();
             renderPreview();
             $id('excel-area').classList.add('hidden');
