@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>프로젝트 목록 — popup_manager</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, 'Helvetica Neue', 'Apple SD Gothic Neo', sans-serif;
+      background: #ffffff;
+      color: #111111;
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      border-bottom: 2px solid #111;
+      padding-bottom: 20px;
+      margin-bottom: 40px;
+    }
+    .header-path {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    .header-title {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .header-sub {
+      font-size: 13px;
+      color: #555;
+      margin-top: 6px;
+    }
+
+    /* ── 섹션 ── */
+    .section {
+      margin-bottom: 40px;
+    }
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #999;
+      border-bottom: 1px solid #e8e8e8;
+      padding-bottom: 8px;
+      margin-bottom: 4px;
+    }
+
+    /* ── 파일 행 ── */
+    .file-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.12s;
+    }
+    .file-row:hover { background: #f8f8f8; margin: 0 -12px; padding-left: 12px; padding-right: 12px; }
+
+    .file-main { display: flex; flex-direction: column; gap: 3px; }
+    .file-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111;
+    }
+    .file-name code {
+      font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+      font-size: 12px;
+      font-weight: 400;
+      color: #666;
+      background: #f0f0f0;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 6px;
+    }
+    .file-desc {
+      font-size: 12px;
+      color: #777;
+    }
+    .file-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 3px 7px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+    .tag-front  { background: #e8f4ff; color: #1a6ab8; }
+    .tag-back   { background: #f0fce8; color: #3a8a20; }
+    .tag-public { background: #fff8e0; color: #a07000; }
+    .tag-game   { background: #f5e8ff; color: #7a20b0; }
+    .tag-admin  { background: #ffe8e8; color: #b02020; }
+
+    /* ── 스톡 서브그룹 ── */
+    .sub-section {
+      margin-top: 16px;
+    }
+    .sub-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 2px;
+      padding: 6px 0 4px;
+    }
+
+    /* ── 재고 페어 테이블 ── */
+    .stock-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: #e8e8e8;
+      border: 1px solid #e8e8e8;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 2px;
+    }
+    .stock-cell {
+      background: #fff;
+      padding: 10px 14px;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.12s;
+    }
+    .stock-cell:hover { background: #f8f8f8; }
+    .stock-cell-label {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .stock-cell-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .stock-cell-file {
+      font-family: 'SF Mono', 'Menlo', monospace;
+      font-size: 10px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    /* ── 알림 배지 ── */
+    .note {
+      font-size: 11px;
+      color: #999;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid #e8e8e8;
+    }
+    .note a { color: #555; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-path">popup_manager /</div>
+    <div class="header-title">프로젝트 파일 목록</div>
+    <div class="header-sub">모든 페이지를 한 눈에 — 개발자용 인덱스</div>
+  </header>
+
+  <!-- ── 손님용 공개 페이지 ── -->
+  <section class="section">
+    <div class="section-label">손님용 공개 페이지</div>
+
+    <a class="file-row" href="./index.html">
+      <div class="file-main">
+        <div class="file-name">팝업 어시스턴트 홈 <code>index.html</code></div>
+        <div class="file-desc">방문 가이드 · 이벤트 · 재고 · 메모장 · 게임 등 메인 허브</div>
+      </div>
+      <span class="file-tag tag-public">PUBLIC</span>
+    </a>
+
+    <a class="file-row" href="./guide.html">
+      <div class="file-main">
+        <div class="file-name">방문 가이드 <code>guide.html</code></div>
+        <div class="file-desc">위치 · 운영시간 · 입장 안내</div>
+      </div>
+      <span class="file-tag tag-public">PUBLIC</span>
+    </a>
+
+    <a class="file-row" href="./events.html">
+      <div class="file-main">
+        <div class="file-name">이벤트 &amp; 혜택 <code>events.html</code></div>
+        <div class="file-desc">진행 중인 이벤트 목록 및 혜택 안내</div>
+      </div>
+      <span class="file-tag tag-public">PUBLIC</span>
+    </a>
+
+    <a class="file-row" href="./memo.html">
+      <div class="file-main">
+        <div class="file-name">쇼핑 메모장 <code>memo.html</code></div>
+        <div class="file-desc">손님이 구매 목록을 메모할 수 있는 페이지</div>
+      </div>
+      <span class="file-tag tag-public">PUBLIC</span>
+    </a>
+  </section>
+
+  <!-- ── 게임 ── -->
+  <section class="section">
+    <div class="section-label">게임</div>
+
+    <a class="file-row" href="./sally-run.html">
+      <div class="file-main">
+        <div class="file-name">SQUARE RUN <code>sally-run.html</code></div>
+        <div class="file-desc">대기시간용 러닝 아케이드 게임</div>
+      </div>
+      <span class="file-tag tag-game">GAME</span>
+    </a>
+
+    <a class="file-row" href="./rpg-game.html">
+      <div class="file-main">
+        <div class="file-name">팝업스토어 RPG <code>rpg-game.html</code></div>
+        <div class="file-desc">Phaser 3 탑다운 RPG — 스탬프 랠리 + NPC + 미니맵</div>
+      </div>
+      <span class="file-tag tag-game">GAME</span>
+    </a>
+  </section>
+
+  <!-- ── 재고 시스템 ── -->
+  <section class="section">
+    <div class="section-label">재고 시스템</div>
+
+    <a class="file-row" href="./stock-home.html">
+      <div class="file-main">
+        <div class="file-name">재고 시스템 홈 <code>stock-home.html</code></div>
+        <div class="file-desc">팝업 스톡 시스템 메인 허브 — 행차별 이동</div>
+      </div>
+      <span class="file-tag tag-front">FRONT</span>
+    </a>
+
+    <a class="file-row" href="./stock-admin.html">
+      <div class="file-main">
+        <div class="file-name">통합 관리자 <code>stock-admin.html</code></div>
+        <div class="file-desc">전체 재고 관리 어드민 패널</div>
+      </div>
+      <span class="file-tag tag-admin">ADMIN</span>
+    </a>
+
+    <!-- 행차별 페어 -->
+    <div class="sub-section">
+      <div class="sub-label">행차별 재고 페이지</div>
+
+      <div style="display:flex;flex-direction:column;gap:1px;">
+
+        <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:1px;background:#e8e8e8;border-radius:4px 4px 0 0;overflow:hidden;">
+          <div style="background:#f8f8f8;padding:8px 10px;display:flex;align-items:center;font-size:10px;font-weight:700;color:#999;letter-spacing:.08em;border-bottom:1px solid #e8e8e8;"></div>
+          <div style="background:#e8f4ff;padding:8px 14px;font-size:10px;font-weight:700;color:#1a6ab8;letter-spacing:.1em;">FRONT (손님용)</div>
+          <div style="background:#f0fce8;padding:8px 14px;font-size:10px;font-weight:700;color:#3a8a20;letter-spacing:.1em;">BACK (관리자용)</div>
+        </div>
+
+        <!-- 1차 -->
+        <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:1px;background:#e8e8e8;overflow:hidden;">
+          <div style="background:#fafafa;padding:12px 10px;display:flex;align-items:center;font-size:12px;font-weight:700;color:#444;">1차</div>
+          <a href="./stock-front-first.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;transition:background .12s;" onmouseover="this.style.background='#f0f8ff'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-front-first.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">POP-UP LIVE STOCK</div>
+          </a>
+          <a href="./stock-back-first.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;transition:background .12s;" onmouseover="this.style.background='#f4fcf0'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-back-first.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">STOCK MANAGER</div>
+          </a>
+        </div>
+
+        <!-- 2차 -->
+        <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:1px;background:#e8e8e8;overflow:hidden;">
+          <div style="background:#fafafa;padding:12px 10px;display:flex;align-items:center;font-size:12px;font-weight:700;color:#444;">2차</div>
+          <a href="./stock-front-second.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;" onmouseover="this.style.background='#f0f8ff'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-front-second.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">POP-UP LIVE STOCK</div>
+          </a>
+          <a href="./stock-back-second.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;" onmouseover="this.style.background='#f4fcf0'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-back-second.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">STOCK MANAGER</div>
+          </a>
+        </div>
+
+        <!-- 3차 -->
+        <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:1px;background:#e8e8e8;overflow:hidden;">
+          <div style="background:#fafafa;padding:12px 10px;display:flex;align-items:center;font-size:12px;font-weight:700;color:#444;">3차</div>
+          <a href="./stock-front-third.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;" onmouseover="this.style.background='#f0f8ff'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-front-third.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">POP-UP LIVE STOCK</div>
+          </a>
+          <a href="./stock-back-third.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;" onmouseover="this.style.background='#f4fcf0'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-back-third.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">STOCK MANAGER</div>
+          </a>
+        </div>
+
+        <!-- 4차 -->
+        <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:1px;background:#e8e8e8;overflow:hidden;">
+          <div style="background:#fafafa;padding:12px 10px;display:flex;align-items:center;font-size:12px;font-weight:700;color:#444;">4차</div>
+          <a href="./stock-front-fourth.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;" onmouseover="this.style.background='#f0f8ff'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-front-fourth.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">POP-UP LIVE STOCK</div>
+          </a>
+          <a href="./stock-back-fourth.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;" onmouseover="this.style.background='#f4fcf0'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-back-fourth.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">STOCK MANAGER</div>
+          </a>
+        </div>
+
+        <!-- 5차 -->
+        <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:1px;background:#e8e8e8;border-radius:0 0 4px 4px;overflow:hidden;">
+          <div style="background:#fafafa;padding:12px 10px;display:flex;align-items:center;font-size:12px;font-weight:700;color:#444;">5차</div>
+          <a href="./stock-front-fifth.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;" onmouseover="this.style.background='#f0f8ff'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-front-fifth.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">POP-UP LIVE STOCK</div>
+          </a>
+          <a href="./stock-back-fifth.html" style="background:#fff;padding:12px 14px;text-decoration:none;color:inherit;" onmouseover="this.style.background='#f4fcf0'" onmouseout="this.style.background='#fff'">
+            <div style="font-size:10px;color:#aaa;font-family:monospace;">stock-back-fifth.html</div>
+            <div style="font-size:13px;font-weight:600;margin-top:2px;">STOCK MANAGER</div>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <p class="note">
+    이 페이지는 개발자용 내부 인덱스입니다. 손님 공개용 메인 페이지 →
+    <a href="./index.html">index.html</a>
+  </p>
+
+</body>
+</html>
